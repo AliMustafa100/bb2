@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Boards and Battles - Magical Chess</title>
+    <link rel="stylesheet" href="app.css" />
+  </head>
+  <body>
+    <div class="container">
+      <div class="title">
+        <h1>Boards and Battles</h1>
+        <p class="subtitle">A Magical Chess Experience</p>
+      </div>
+      
+      <div class="game-area">
+        <div class="board-section">
+          <div class="current-player">
+            Current Player: <span id="currentPlayer">White</span>
+          </div>
+          <div class="chess-board" id="chessBoard"></div>
+          <div id="gameStatus"></div>
+          <div class="game-controls">
+            <button id="resetButton">Reset Game</button>
+            <button id="rollDiceButton">Roll Dice</button>
+            <div class="dice-result" id="diceResult"></div>
+          </div>
+        </div>
+
+        <div class="magical-section">
+          <div class="spells-section">
+            <h3>Spells</h3>
+            <div class="spells-grid" id="spellsGrid"></div>
+          </div>
+          
+          <div class="items-section">
+            <h3>Items</h3>
+            <div class="items-grid" id="itemsGrid"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="rules">
+        <h3>Game Rules</h3>
+        <div class="rules-content">
+          <h4>Chess Rules:</h4>
+          <ul>
+            <li>Standard chess piece movement</li>
+            <li>Capture the opponent's king to win</li>
+            <li>Check and checkmate rules apply</li>
+          </ul>
+          
+          <h4>Magical Rules:</h4>
+          <ul>
+            <li>Roll dice to use spells (5-17+ required)</li>
+            <li>Spells can only be used by the king</li>
+            <li>Items can be used by any piece</li>
+            <li>Up to 3 spells or items per turn</li>
+            <li>Spells can't kill the king</li>
+            <li>King can't be revived</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <script src="app.js"></script>
+  </body>
+</html>

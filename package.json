@@ -1,0 +1,25 @@
+{
+  "name": "boards-and-battles",
+  "version": "1.0.0",
+  "description": "A chess game with magical spells and special items",
+  "main": "src/game/index.js",
+  "scripts": {
+    "start": "node src/game/index.js",
+    "serve": "npx http-server app -p 8080 -o",
+    "test": "jest",
+    "lint": "eslint src/**/*.js"
+  },
+  "keywords": [
+    "chess",
+    "game",
+    "magic",
+    "spells"
+  ],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "eslint": "^8.56.0",
+    "http-server": "^14.1.1",
+    "jest": "^29.7.0"
+  }
+}
