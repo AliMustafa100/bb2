@@ -368,3 +368,492 @@ button:disabled {
     font-size: 28px;
   }
 }
+/* Enhanced Timer and Effects Display Styles */
+.effects-display {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 15px;
+  border-radius: 12px;
+  backdrop-filter: blur(5px);
+  color: white;
+  margin-top: 20px;
+  border: 2px solid rgba(255, 215, 0, 0.3);
+}
+
+.effects-display h3 {
+  margin-top: 0;
+  color: #ffd700;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+  text-align: center;
+  font-size: 18px;
+}
+
+.effects-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.effect-item {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  border-left: 3px solid #ffd700;
+  animation: effectPulse 2s ease-in-out infinite;
+}
+
+.no-effects {
+  text-align: center;
+  opacity: 0.6;
+  font-style: italic;
+  padding: 10px;
+}
+
+@keyframes effectPulse {
+  0%, 100% { opacity: 0.8; }
+  50% { opacity: 1; }
+}
+
+/* Enhanced Square Effects */
+.square.frozen {
+  background-color: #87CEEB !important;
+  opacity: 0.8;
+  border: 2px solid #4682B4;
+  box-shadow: 0 0 10px rgba(70, 130, 180, 0.5);
+  animation: freeze-pulse 1.5s ease-in-out infinite;
+}
+
+.square.barrier {
+  background-color: #8B4513 !important;
+  opacity: 0.9;
+  border: 2px solid #A0522D;
+  box-shadow: 0 0 10px rgba(139, 69, 19, 0.5);
+  animation: barrier-pulse 2s ease-in-out infinite;
+}
+
+@keyframes freeze-pulse {
+  0%, 100% { 
+    box-shadow: 0 0 5px rgba(70, 130, 180, 0.3);
+    border-color: #4682B4;
+  }
+  50% { 
+    box-shadow: 0 0 15px rgba(70, 130, 180, 0.8);
+    border-color: #87CEEB;
+  }
+}
+
+@keyframes barrier-pulse {
+  0%, 100% { 
+    box-shadow: 0 0 5px rgba(139, 69, 19, 0.3);
+    border-color: #A0522D;
+  }
+  50% { 
+    box-shadow: 0 0 15px rgba(139, 69, 19, 0.8);
+    border-color: #CD853F;
+  }
+}
+
+/* Timer Counter Overlays */
+.freeze-counter,
+.barrier-counter {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  font-size: 10px;
+  font-weight: bold;
+  border-radius: 50%;
+  width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  border: 1px solid #ffd700;
+}
+
+.freeze-counter {
+  background: rgba(70, 130, 180, 0.9);
+  border-color: #87CEEB;
+}
+
+.barrier-counter {
+  background: rgba(139, 69, 19, 0.9);
+  border-color: #CD853F;
+}
+
+/* Enhanced Spell and Item Cards with Duration Display */
+.spell-card.active-effect,
+.item-card.active-effect {
+  border-color: #32CD32;
+  box-shadow: 0 0 10px rgba(50, 205, 50, 0.3);
+  animation: activeEffect 2s ease-in-out infinite;
+}
+
+@keyframes activeEffect {
+  0%, 100% { 
+    box-shadow: 0 0 5px rgba(50, 205, 50, 0.3);
+  }
+  50% { 
+    box-shadow: 0 0 15px rgba(50, 205, 50, 0.6);
+  }
+}
+
+/* Enhanced Current Player Display */
+.current-player {
+  position: relative;
+}
+
+.current-player::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80%;
+  height: 2px;
+  background: linear-gradient(90deg, #ffd700, #ff6b6b, #ffd700);
+  animation: playerGlow 2s ease-in-out infinite;
+}
+
+@keyframes playerGlow {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+
+/* Enhanced Game Status with Turn Counter */
+.game-status {
+  position: relative;
+  overflow: hidden;
+}
+
+.game-status::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  animation: statusSweep 3s ease-in-out infinite;
+}
+
+@keyframes statusSweep {
+  0% { left: -100%; }
+  50% { left: 100%; }
+  100% { left: 100%; }
+}
+
+/* Responsive adjustments for effects display */
+@media (max-width: 1200px) {
+  .effects-display {
+    margin-top: 15px;
+    padding: 12px;
+  }
+  
+  .effect-item {
+    font-size: 12px;
+    padding: 6px 10px;
+  }
+}
+
+@media (max-width: 600px) {
+  .freeze-counter,
+  .barrier-counter {
+    width: 14px;
+    height: 14px;
+    font-size: 9px;
+  }
+  
+  .effects-display {
+    margin-top: 10px;
+    padding: 10px;
+  }
+  
+  .effects-display h3 {
+    font-size: 16px;
+  }
+  
+  .effect-item {
+    font-size: 11px;
+    padding: 5px 8px;
+  }
+}
+
+/* Enhanced dice result with rage effect indicator */
+.dice-result.rage-active {
+  background: linear-gradient(45deg, #ff6b6b, #ff8e8e);
+  box-shadow: 0 0 15px rgba(255, 107, 107, 0.5);
+  animation: rageGlow 1s ease-in-out infinite;
+}
+
+@keyframes rageGlow {
+  0%, 100% { 
+    box-shadow: 0 0 10px rgba(255, 107, 107, 0.3);
+  }
+  50% { 
+    box-shadow: 0 0 20px rgba(255, 107, 107, 0.7);
+  }
+}
+
+/* Spell duration indicators in card headers */
+.spell-name::after,
+.item-name::after {
+  content: attr(data-duration);
+  font-size: 10px;
+  color: #ffd700;
+  margin-left: 5px;
+  opacity: 0.8;
+}
+
+/* Visual feedback for spell/item usage */
+.spell-card.just-used,
+.item-card.just-used {
+  animation: usageFlash 0.5s ease-out;
+}
+
+@keyframes usageFlash {
+  0% { 
+    background: rgba(50, 205, 50, 0.4);
+    transform: scale(1.05);
+  }
+  100% { 
+    background: rgba(255, 255, 255, 0.15);
+    transform: scale(1);
+  }
+}
+
+/* Enhanced Spell and Item Usage Styles */
+.spell-usage,
+.item-usage {
+  margin-top: 15px;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 215, 0, 0.2);
+}
+
+#useSpellButton,
+#useItemButton {
+  width: 100%;
+  padding: 10px;
+  font-size: 14px;
+  background: linear-gradient(135deg, #4CAF50, #45a049);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: all 0.3s ease;
+  margin-bottom: 10px;
+}
+
+#useSpellButton:hover:not(:disabled),
+#useItemButton:hover:not(:disabled) {
+  background: linear-gradient(135deg, #45a049, #3d8b40);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+#useSpellButton:disabled,
+#useItemButton:disabled {
+  background: linear-gradient(135deg, #666, #555);
+  cursor: not-allowed;
+  opacity: 0.6;
+  transform: none;
+  box-shadow: none;
+}
+
+.spell-result,
+.item-result {
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  text-align: center;
+  min-height: 20px;
+  background: rgba(255, 255, 255, 0.1);
+  color: #ccc;
+  transition: all 0.3s ease;
+  opacity: 0;
+  transform: translateY(-10px);
+}
+
+.spell-result.active,
+.item-result.active {
+  opacity: 1;
+  transform: translateY(0);
+  background: rgba(76, 175, 80, 0.2);
+  color: #4CAF50;
+  border: 1px solid rgba(76, 175, 80, 0.3);
+  animation: resultPulse 0.5s ease-out;
+}
+
+@keyframes resultPulse {
+  0% { 
+    transform: scale(1);
+    box-shadow: 0 0 0 rgba(76, 175, 80, 0.4);
+  }
+  50% { 
+    transform: scale(1.05);
+    box-shadow: 0 0 10px rgba(76, 175, 80, 0.6);
+  }
+  100% { 
+    transform: scale(1);
+    box-shadow: 0 0 0 rgba(76, 175, 80, 0.4);
+  }
+}
+
+/* Enhanced spell/item card selection */
+.spell-card.selected,
+.item-card.selected {
+  border-color: #4CAF50 !important;
+  background: rgba(76, 175, 80, 0.2) !important;
+  box-shadow: 0 0 15px rgba(76, 175, 80, 0.4) !important;
+  transform: scale(1.02);
+}
+
+.spell-card:hover:not(.disabled),
+.item-card:hover:not(.disabled) {
+  transform: translateY(-2px) scale(1.01);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* Enhanced dice result with better visibility */
+.dice-result {
+  background: rgba(255, 255, 255, 0.15);
+  border: 2px solid rgba(255, 215, 0, 0.3);
+  border-radius: 8px;
+  padding: 12px;
+  font-size: 18px;
+  font-weight: bold;
+  text-align: center;
+  min-width: 120px;
+  transition: all 0.3s ease;
+}
+
+.dice-result.rage-active {
+  background: linear-gradient(45deg, rgba(255, 107, 107, 0.3), rgba(255, 142, 142, 0.3));
+  border-color: #ff6b6b;
+  color: #ff6b6b;
+  animation: rageGlow 1s ease-in-out infinite;
+}
+
+/* Enhanced game controls */
+.game-controls {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+  margin-top: 15px;
+}
+
+.game-controls button {
+  min-width: 120px;
+  padding: 12px 20px;
+  font-size: 16px;
+}
+
+/* Responsive adjustments for spell/item usage */
+@media (max-width: 1200px) {
+  .spell-usage,
+  .item-usage {
+    margin-top: 10px;
+    padding: 8px;
+  }
+  
+  #useSpellButton,
+  #useItemButton {
+    padding: 8px;
+    font-size: 13px;
+  }
+  
+  .spell-result,
+  .item-result {
+    font-size: 11px;
+    padding: 6px 10px;
+  }
+}
+
+@media (max-width: 600px) {
+  .spell-usage,
+  .item-usage {
+    margin-top: 8px;
+    padding: 6px;
+  }
+  
+  #useSpellButton,
+  #useItemButton {
+    padding: 6px;
+    font-size: 12px;
+  }
+  
+  .spell-result,
+  .item-result {
+    font-size: 10px;
+    padding: 4px 8px;
+  }
+  
+  .dice-result {
+    font-size: 16px;
+    padding: 10px;
+    min-width: 100px;
+  }
+}
+
+/* Enhanced visual feedback for spell/item selection */
+.spell-card::after,
+.item-card::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: 8px;
+  background: linear-gradient(45deg, transparent, rgba(255, 215, 0, 0.1), transparent);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.spell-card.selected::after,
+.item-card.selected::after {
+  opacity: 1;
+  animation: selectionGlow 2s ease-in-out infinite;
+}
+
+@keyframes selectionGlow {
+  0%, 100% { 
+    background: linear-gradient(45deg, transparent, rgba(76, 175, 80, 0.1), transparent);
+  }
+  50% { 
+    background: linear-gradient(45deg, transparent, rgba(76, 175, 80, 0.3), transparent);
+  }
+}
+
+/* Enhanced button states */
+#useSpellButton:not(:disabled):active,
+#useItemButton:not(:disabled):active {
+  transform: translateY(1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Better visual hierarchy */
+.spells-section h3,
+.items-section h3 {
+  margin-bottom: 15px;
+  text-align: center;
+  color: #ffd700;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.spell-usage h4,
+.item-usage h4 {
+  margin: 0 0 10px 0;
+  font-size: 14px;
+  color: #ffd700;
+  text-align: center;
+}
