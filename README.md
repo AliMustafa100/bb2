@@ -170,6 +170,12 @@ Feel free to contribute by:
 - Adding new features
 - Writing tests
 
+## Bugs and Fixes 
+- Fix Spell Message Color ( Green -> Black )
+- Hover over picture for names
+- Debug Spells
+- Be able to role One's
+
 ## License
 
 ISC License - see package.json for details.
