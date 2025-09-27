@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Boards and Battles - Magical Chess</title>
-    <link rel="stylesheet" href="app.css" />
+    <link rel="stylesheet" href="app.css?v=1758980769" />
   </head>
   <body>
     <div class="container">
@@ -31,11 +31,25 @@
           <div class="spells-section">
             <h3>Spells</h3>
             <div class="spells-grid" id="spellsGrid"></div>
+            <div class="spell-usage">
+              <button id="useSpellButton" disabled>Use Selected Spell (S)</button>
+              <div id="spellResult" class="spell-result"></div>
+            </div>
           </div>
           
           <div class="items-section">
             <h3>Items</h3>
             <div class="items-grid" id="itemsGrid"></div>
+            <div class="item-usage">
+              <button id="useItemButton" disabled>Use Selected Item (I)</button>
+              <div id="itemResult" class="item-result"></div>
+            </div>
+          </div>
+          
+          <!-- Enhanced Effects Display -->
+          <div class="effects-display">
+            <h3>Active Effects</h3>
+            <div id="activeEffectsList" class="effects-list"></div>
           </div>
         </div>
       </div>
@@ -59,9 +73,17 @@
             <li>Spells can't kill the king</li>
             <li>King can't be revived</li>
           </ul>
+          
+          <h4>How to Use Spells/Items:</h4>
+          <ul>
+            <li>1. Roll dice first</li>
+            <li>2. Click on a spell or item to select it</li>
+            <li>3. Click "Use Selected Spell/Item" or press S/I</li>
+            <li>4. Watch the effects display for active timers</li>
+          </ul>
         </div>
       </div>
     </div>
-    <script src="app.js"></script>
+    <script src="app.js?v=1758980700"></script>
   </body>
 </html>
