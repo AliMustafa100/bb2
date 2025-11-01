@@ -191,6 +191,22 @@ class MagicalChessGame {
           return `🔥 Fireball exploded! ${capturedCount} pieces captured.`;
         }
       },
+      Invisibility_Potion: {
+        name: "Invisibility Potion",
+        description: "Make any one of your pieces 'invisible' for 2 turns. Requires perception check to capture.",
+        condition: "Requires a 13 or higher.",
+        minRoll: 13,
+        duration: 2,
+        effect: (game, roll) => {
+          if (roll < 13) return "Roll too low";
+          
+          const ownPieces = game.findOwnPieces();
+          if (ownPieces.length === 0) return "No pieces to make invisible";
+          
+          game.playerState[game.currentPlayer].invisibilityTurns = 2;
+          return "👻 A piece has been made invisible for 2 turns.";
+        }
+      },
       Queens_Soul: {
         name: "Queen's Soul",
         description: "Allows the king to move as if it was a queen for 1 turn.",
@@ -265,22 +281,6 @@ class MagicalChessGame {
           
           game.board[target.row][target.col] = "";
           return `🕸️ Piece temporarily captured for 3 turns.`;
-        }
-      },
-      Invisibility_Potion: {
-        name: "Invisibility Potion",
-        description: "Make any one of your pieces 'invisible' for 2 turns. Requires perception check to capture.",
-        condition: "Requires a 13 or higher.",
-        minRoll: 13,
-        duration: 2,
-        effect: (game, roll) => {
-          if (roll < 13) return "Roll too low";
-          
-          const ownPieces = game.findOwnPieces();
-          if (ownPieces.length === 0) return "No pieces to make invisible";
-          
-          game.playerState[game.currentPlayer].invisibilityTurns = 2;
-          return "👻 A piece has been made invisible for 2 turns.";
         }
       },
       Time_Machine: {
