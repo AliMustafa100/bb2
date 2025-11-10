@@ -1,4 +1,14 @@
 // Enhanced Magical Chess Game with Timer and Turn Counter System
+
+const spell_limit = { 
+// logic for spell tracking 
+}
+
+const kings_loc = function kings_loc(king.row , king.col){
+ return 'kings location is at row {king.row} and col is {kings.col}'
+}
+
+
 class MagicalChessGame {
   constructor() {
     this.board = this.initializeBoard();
@@ -89,6 +99,7 @@ class MagicalChessGame {
         description: "Cast a bolt of thunder from the king in any direction. The thunder captures the first piece it hits.",
         condition: "Roll a 10 or higher.",
         minRoll: 10,
+        spell_limit: 3,
         effect: (game) => {
           const king = game.findKing(game.currentPlayer);
           if (!king) return "King not found";
@@ -96,8 +107,11 @@ class MagicalChessGame {
           const enemyPieces = game.findEnemyPieces();
           if (enemyPieces.length === 0) return "No enemy pieces to target";
           
-          const randomPiece = enemyPieces[Math.floor(Math.random() * enemyPieces.length)];
-          game.capturePieceAt(randomPiece.row, randomPiece.col);
+          const diagonal_enemy_piece = enemyPieces.find(pieces => piece.row !== king.row && piece.col !== king.col);
+          if (!diagonal_enemy_piece) return "No diagnol enemy piece to target";
+          
+          game.
+          
           return "⚡ Thunder struck an enemy piece!";
         }
       },
@@ -106,6 +120,7 @@ class MagicalChessGame {
         description: "On your next 2 turns, you get to roll twice, and you use the higher roll.",
         condition: "Roll a 5 or higher.",
         minRoll: 5,
+        spell_limit: 3,
         duration: 2,
         effect: (game) => {
           game.playerState[game.currentPlayer].rageTurns = 2;
@@ -117,6 +132,7 @@ class MagicalChessGame {
         description: "Freezes 4 squares in a 2x2 area. Lasts for 2 turns total (1 turn for each player).",
         condition: "Roll a 10 or higher.",
         minRoll: 10,
+        spell_limit: 2,
         duration: 2,
         effect: (game) => {
           // Allow player to choose freeze location (for demo, use center)
@@ -144,6 +160,7 @@ class MagicalChessGame {
         description: "Bring a piece back from the dead.",
         condition: "Roll a 15 or higher.",
         minRoll: 15,
+        spell_limit: 2,
         effect: (game) => {
           const graveyard = game.capturedPieces[game.currentPlayer];
           if (graveyard.length === 0) return "Graveyard is empty.";
@@ -162,6 +179,7 @@ class MagicalChessGame {
         condition: "Roll an 11 or higher.",
         minRoll: 11,
         duration: 1,
+        spell_limit:2,
         effect: (game) => {
           game.playerState[game.currentPlayer].extraMove = true;
           game.playerState[game.currentPlayer].agilityTurns = 1;
@@ -173,11 +191,12 @@ class MagicalChessGame {
         description: "Cast a fireball that captures the targeted piece and all adjacent pieces within 1 square.",
         condition: "Roll a 15 or higher.",
         minRoll: 15,
+        spell_limit:3:,
         effect: (game) => {
           const enemyPieces = game.findEnemyPieces();
           if (enemyPieces.length === 0) return "No enemy pieces to target";
           
-          const target = enemyPieces[Math.floor(Math.random() * enemyPieces.length)];
+          const target = 
           const impactedSquares = game.getFireballImpactArea(target);
           
           let capturedCount = 0;
@@ -197,6 +216,7 @@ class MagicalChessGame {
         condition: "Requires a 13 or higher.",
         minRoll: 13,
         duration: 2,
+        spell_limit: 3,
         effect: (game, roll) => {
           if (roll < 13) return "Roll too low";
           
@@ -213,6 +233,7 @@ class MagicalChessGame {
         condition: "Roll a 17 or higher.",
         minRoll: 17,
         duration: 1,
+        spell_limit:1,
         effect: (game) => {
           game.playerState[game.currentPlayer].kingCanMoveLikeQueen = true;
           game.playerState[game.currentPlayer].kingCanMoveLikeQueenTurns = 1;
@@ -227,11 +248,14 @@ class MagicalChessGame {
       Knife: {
         name: "Knife",
         description: "Stab a piece adjacent to the one using the knife. You can use this to capture your own.",
+        spell_limit:4,
         effect: (game) => {
           const enemyPieces = game.findEnemyPieces();
           if (enemyPieces.length === 0) return "No enemy pieces to target";
           
-          const target = enemyPieces[Math.floor(Math.random() * enemyPieces.length)];
+          const target = enemyPieces.find (piece => piece.row !==king.row && piece.col !==king.col);
+          if (!target) = 
+
           game.capturePieceAt(target.row, target.col);
           return "🗡️ Stabbed an enemy piece!";
         }
@@ -240,6 +264,7 @@ class MagicalChessGame {
         name: "Magic Wand",
         description: "Lets pieces other than the king use spells. Lasts for 3 turns.",
         duration: 3,
+        spell_limit: 3,
         effect: (game) => {
           game.playerState[game.currentPlayer].magicWandTurns = 3;
           return "🪄 Magic Wand activated! Non-king pieces can use spells for 3 turns.";
@@ -249,6 +274,7 @@ class MagicalChessGame {
         name: "Barrier",
         description: "Place a barrier that covers one square. Lasts for 5 turns.",
         duration: 5,
+        spell_limit: 2,
         effect: (game) => {
           const emptySpot = game.findEmptySpot();
           if (!emptySpot) return "No space to place barrier.";
@@ -265,11 +291,14 @@ class MagicalChessGame {
         name: "Fishing Net",
         description: "Temporarily capture a piece from the board for 3 turns, then return it.",
         duration: 3,
+        spell_limit:2,
         effect: (game) => {
           const enemyPieces = game.findEnemyPieces();
           if (enemyPieces.length === 0) return "No enemy pieces to capture";
           
-          const target = enemyPieces[Math.floor(Math.random() * enemyPieces.length)];
+          const fish_target = enemyPieces.find(peieces => peieces.col !== king.col && peieces.row !== king.row );
+          if (!fish_target)
+
           if (target.piece === "♚" || target.piece === "♔") return "Cannot capture king";
           
           game.temporaryCaptures.push({
@@ -286,6 +315,7 @@ class MagicalChessGame {
       Time_Machine: {
         name: "Time Machine",
         description: "Redo your previous move. Both players undo their most recent move, then you make a new move.",
+        spell_limit:3,
         effect: (game) => {
           if (game.moveHistory.length < 2) return "Not enough moves to undo";
           
@@ -296,31 +326,16 @@ class MagicalChessGame {
       Skip: {
         name: "Skip",
         description: "End your turn without making a move.",
+        spell_limit:3,
         effect: (game) => {
           game.processEndTurn();
           return "⏭️ Turn skipped.";
         }
       },
-      Lucky_Coin: {
-        name: "Lucky Coin",
-        description: "Flip a coin for random good or bad effect.",
-        effect: (game) => {
-          const coinFlip = Math.random() > 0.5;
-          if (coinFlip) {
-            // Good effect: Extra spell use
-            game.spellsUsedThisTurn = Math.max(0, game.spellsUsedThisTurn - 1);
-            return "🪙 Heads! Good fortune! +1 spell use this turn.";
-          } else {
-            // Bad effect: Lose a turn counter
-            const state = game.playerState[game.currentPlayer];
-            if (state.rageTurns > 0) state.rageTurns--;
-            return "🪙 Tails! Bad luck! Lost 1 turn from an active effect.";
-          }
-        }
-      },
       Mana_Potion: {
         name: "Mana Potion",
         description: "Completely replenish 1 spell use.",
+        spell_limit:1,
         effect: (game) => {
           game.spellsUsedThisTurn = Math.max(0, game.spellsUsedThisTurn - 1);
           return "🧪 Mana restored! +1 spell use this turn.";
