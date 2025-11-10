@@ -171,9 +171,14 @@ Feel free to contribute by:
 - Writing tests
 
 ## Bugs and Fixes 
-- Fix Spell Message Color ( Green -> Black )
-- Hover over picture for names
-- Debug Spells
+Separate spells and move phase 
+
+Add spell use limit 
+Make skip item skip phase 
+Skip should be generalized 
+In spells like thunder spell capture is random rather than specific 
+Set king as last moved piece for spells ( set the king as the origin for all the spells ) 
+
 - Be able to role One's
 
 ## License
