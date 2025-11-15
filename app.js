@@ -4,8 +4,8 @@ const spell_limit = {
 // logic for spell tracking 
 }
 
-const kings_loc = function kings_loc(king.row , king.col){
- return 'kings location is at row {king.row} and col is {kings.col}'
+const kings_loc = function kings_loc(row , col){
+ return `kings location is at row ${row} and col is ${col}`
 }
 
 
@@ -110,8 +110,6 @@ class MagicalChessGame {
           const diagonal_enemy_piece = enemyPieces.find(pieces => piece.row !== king.row && piece.col !== king.col);
           if (!diagonal_enemy_piece) return "No diagnol enemy piece to target";
           
-          game.
-          
           return "⚡ Thunder struck an enemy piece!";
         }
       },
@@ -191,12 +189,12 @@ class MagicalChessGame {
         description: "Cast a fireball that captures the targeted piece and all adjacent pieces within 1 square.",
         condition: "Roll a 15 or higher.",
         minRoll: 15,
-        spell_limit:3:,
+        spell_limit:3,
         effect: (game) => {
           const enemyPieces = game.findEnemyPieces();
           if (enemyPieces.length === 0) return "No enemy pieces to target";
           
-          const target = 
+          const target = enemyPieces.find (piece => piece.row !==king.row && piece.col !==king.col);
           const impactedSquares = game.getFireballImpactArea(target);
           
           let capturedCount = 0;
@@ -254,8 +252,8 @@ class MagicalChessGame {
           if (enemyPieces.length === 0) return "No enemy pieces to target";
           
           const target = enemyPieces.find (piece => piece.row !==king.row && piece.col !==king.col);
-          if (!target) = 
-
+          if (!target) return "No enemy pieces to target";
+          console.log(target)
           game.capturePieceAt(target.row, target.col);
           return "🗡️ Stabbed an enemy piece!";
         }
