@@ -242,13 +242,13 @@ class MagicalChessGame {
   }
 
   initializeItems() {
-    king = game.findKing(game.currentPlayer)
     return {
       Knife: {
         name: "Knife",
         description: "Stab a piece adjacent to the one using the knife. You can use this to capture your own.",
         spell_limit:4,
         effect: (game) => {
+          const king = game.findKing(game.currentPlayer)
           const enemyPieces = game.findEnemyPieces();
           if (enemyPieces.length === 0) return "No enemy pieces to target";
           
