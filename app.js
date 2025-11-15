@@ -242,6 +242,7 @@ class MagicalChessGame {
   }
 
   initializeItems() {
+    king = game.findKing(game.currentPlayer)
     return {
       Knife: {
         name: "Knife",
