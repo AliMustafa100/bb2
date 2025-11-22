@@ -1,3 +1,27 @@
+// Import the functions you need from the SDKs you need
+import { initializeApp } from "firebase/app";
+import { getAnalytics } from "firebase/analytics";
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
+
+// Your web app's Firebase configuration
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyBm5U6p1JZPNe87V4KoqmhR2k3D5T0numM",
+  authDomain: "bb25-4fa74.firebaseapp.com",
+  projectId: "bb25-4fa74",
+  storageBucket: "bb25-4fa74.firebasestorage.app",
+  messagingSenderId: "39537827112",
+  appId: "1:39537827112:web:20faeb7f3ce1b98583441d",
+  measurementId: "G-7CYTP56RYE"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
+
+
+
 // Enhanced Magical Chess Game with Timer and Turn Counter System
 
 const spell_limit = { 
@@ -130,13 +154,15 @@ class MagicalChessGame {
         description: "Freezes 4 squares in a 2x2 area. Lasts for 2 turns total (1 turn for each player).",
         condition: "Roll a 10 or higher.",
         minRoll: 10,
-        spell_limit: 2,
-        duration: 2,
+        spell_limit: 4,
+        duration: 4,
         effect: (game) => {
           // Allow player to choose freeze location (for demo, use center)
           const centerRow = Math.floor(Math.random() * 6) + 1; // Random but valid 2x2 area
-          const centerCol = Math.floor(Math.random() * 6) + 1;
           
+          const centerCol = square.addEventListener("click", (e) =>
+          this.handleSquareClick(row, col)                                   
+        )
           game.freezeEffect = {
             active: true,
             squares: [
@@ -145,12 +171,12 @@ class MagicalChessGame {
               {row: centerRow + 1, col: centerCol},
               {row: centerRow + 1, col: centerCol + 1}
             ],
-            remainingTurns: 2,
-            totalTurns: 2,
+            remainingTurns: 4,
+            totalTurns: 4,
             caster: game.currentPlayer
           };
           
-          return `❄️ Freeze spell activated! 2x2 area frozen for 2 turns at (${centerRow},${centerCol}).`;
+          return `❄️ Freeze spell activated! 2x2 area frozen for 4 turns at (${centerRow},${centerCol}).`;
         }
       },
       Necromancy: {
