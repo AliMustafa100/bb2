@@ -1,4 +1,23 @@
 // Enhanced Magical Chess Game with Timer and Turn Counter System
+
+const spell_limit ={
+  Thunder_Spell: 1,
+  Rage: 1,
+  Freeze: 1,
+  Necromancy: 1,
+  Agility: 1,
+  Fireball: 1,
+  Invisibility_Potion: 1,
+  Queens_Soul: 1,
+  Knife: 1,
+  Magic_Wand: 1,
+  Barrier: 1,
+  Fishing_Net: 1,
+  Time_Machine: 1,
+  Skip: 1,
+  Lucky_Coin: 1,
+}
+
 class MagicalChessGame {
   constructor() {
     this.board = this.initializeBoard();
@@ -96,9 +115,11 @@ class MagicalChessGame {
           const enemyPieces = game.findEnemyPieces();
           if (enemyPieces.length === 0) return "No enemy pieces to target";
           
-          const randomPiece = enemyPieces[Math.floor(Math.random() * enemyPieces.length)];
-          game.capturePieceAt(randomPiece.row, randomPiece.col);
-          return "⚡ Thunder struck an enemy piece!";
+          const diagnolEnemyPiece = enemyPieces.find(piece => piece.row !== king.row && piece.col !== king.col);
+          if (!diagnolEnemyPiece) return "No diagnol enemy piece to target";
+          
+          game.capturePieceAt(diagnolEnemyPiece.row, diagnolEnemyPiece.col);
+          return `⚡ Thunder struck an enemy piece at (${diagnolEnemyPiece.row}, ${diagnolEnemyPiece.col})!`;   
         }
       },
       Rage: {
@@ -106,6 +127,7 @@ class MagicalChessGame {
         description: "On your next 2 turns, you get to roll twice, and you use the higher roll.",
         condition: "Roll a 5 or higher.",
         minRoll: 5,
+        spellLimit: 1,
         duration: 2,
         effect: (game) => {
           game.playerState[game.currentPlayer].rageTurns = 2;
