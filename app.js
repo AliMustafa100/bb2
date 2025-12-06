@@ -16,6 +16,9 @@ const spell_limit ={
   Time_Machine: 1,
   Skip: 1,
   Lucky_Coin: 1,
+  Wontan: 1,
+  Ladder: 1,
+  Mana_Potion: 1,
 }
 
 class MagicalChessGame {
@@ -36,7 +39,7 @@ class MagicalChessGame {
     this.spells = this.initializeSpells();
     this.items = this.initializeItems();
     
-    // Enhanced player state with comprehensive timer tracking
+    // Enhanced player state with comprehensive timer tracking and spell usage limits
     this.playerState = {
       white: { 
         rageTurns: 0, 
@@ -46,7 +49,10 @@ class MagicalChessGame {
         agilityTurns: 0,
         magicWandTurns: 0,
         invisibilityTurns: 0,
-        barrierTurns: 0
+        barrierTurns: 0,
+        spellsUsed: {}, // Track per-spell usage
+        ladderActive: false,
+        ladderTurns: 0
       },
       black: { 
         rageTurns: 0, 
@@ -56,9 +62,15 @@ class MagicalChessGame {
         agilityTurns: 0,
         magicWandTurns: 0,
         invisibilityTurns: 0,
-        barrierTurns: 0
+        barrierTurns: 0,
+        spellsUsed: {}, // Track per-spell usage
+        ladderActive: false,
+        ladderTurns: 0
       }
     };
+    
+    this.waitingForTarget = false;
+    this.pendingSpellAction = null;
     
     // Enhanced freeze system with proper timer tracking
     this.freezeEffect = {
@@ -80,6 +92,8 @@ class MagicalChessGame {
     this.selectedSpell = null;
     this.selectedItem = null;
     this.turnCounter = 0;
+    this.turnPhase = "move"; // "move", "spell", "item" - current phase of turn
+    this.movesThisTurn = 0;
 
     console.log("Creating board..."); this.createBoard();
     console.log("Creating spells UI..."); this.createSpellsUI();
@@ -105,21 +119,55 @@ class MagicalChessGame {
     return {
       Thunder_Spell: {
         name: "Thunder Spell",
-        description: "Cast a bolt of thunder from the king in any direction. The thunder captures the first piece it hits.",
+        description: "Cast a bolt of thunder from your king in a straight line. Click a target square to strike the first piece in that direction.",
         condition: "Roll a 10 or higher.",
         minRoll: 10,
-        effect: (game) => {
+        requiresTarget: true,
+        effect: (game, targetRow, targetCol) => {
           const king = game.findKing(game.currentPlayer);
           if (!king) return "King not found";
           
-          const enemyPieces = game.findEnemyPieces();
-          if (enemyPieces.length === 0) return "No enemy pieces to target";
+          if (targetRow === undefined || targetCol === undefined) {
+            game.waitingForTarget = true;
+            game.pendingSpellAction = { type: "Thunder_Spell", king: king };
+            return "Click a target square to cast thunder in that direction.";
+          }
           
-          const diagnolEnemyPiece = enemyPieces.find(piece => piece.row !== king.row && piece.col !== king.col);
-          if (!diagnolEnemyPiece) return "No diagnol enemy piece to target";
+          // Calculate direction from king to target
+          const rowDiff = targetRow - king.row;
+          const colDiff = targetCol - king.col;
           
-          game.capturePieceAt(diagnolEnemyPiece.row, diagnolEnemyPiece.col);
-          return `⚡ Thunder struck an enemy piece at (${diagnolEnemyPiece.row}, ${diagnolEnemyPiece.col})!`;   
+          // Normalize direction (only straight lines: horizontal, vertical, or diagonal)
+          if (rowDiff !== 0 && colDiff !== 0 && Math.abs(rowDiff) !== Math.abs(colDiff)) {
+            return "Thunder must be cast in a straight line (horizontal, vertical, or diagonal).";
+          }
+          
+          const rowStep = rowDiff === 0 ? 0 : (rowDiff > 0 ? 1 : -1);
+          const colStep = colDiff === 0 ? 0 : (colDiff > 0 ? 1 : -1);
+          
+          // Find first piece in that direction
+          let currentRow = king.row + rowStep;
+          let currentCol = king.col + colStep;
+          
+          while (currentRow >= 0 && currentRow < 8 && currentCol >= 0 && currentCol < 8) {
+            const piece = game.getPieceAt(currentRow, currentCol);
+            if (piece) {
+              // Don't capture own king
+              if (piece === "♚" || piece === "♔") {
+                return "Cannot target king with thunder.";
+              }
+              game.capturePieceAt(currentRow, currentCol);
+              game.waitingForTarget = false;
+              game.pendingSpellAction = null;
+              return `⚡ Thunder struck ${piece} at (${currentRow}, ${currentCol})!`;
+            }
+            currentRow += rowStep;
+            currentCol += colStep;
+          }
+          
+          game.waitingForTarget = false;
+          game.pendingSpellAction = null;
+          return "Thunder traveled but hit nothing.";
         }
       },
       Rage: {
@@ -136,46 +184,82 @@ class MagicalChessGame {
       },
       Freeze: {
         name: "Freeze",
-        description: "Freezes 4 squares in a 2x2 area. Lasts for 2 turns total (1 turn for each player).",
+        description: "Freezes 4 squares in a 2x2 area. Click the top-left square of the area to freeze. Lasts for 2 turns.",
         condition: "Roll a 10 or higher.",
         minRoll: 10,
         duration: 2,
-        effect: (game) => {
-          // Allow player to choose freeze location (for demo, use center)
-          const centerRow = Math.floor(Math.random() * 6) + 1; // Random but valid 2x2 area
-          const centerCol = Math.floor(Math.random() * 6) + 1;
+        requiresTarget: true,
+        effect: (game, targetRow, targetCol) => {
+          if (targetRow === undefined || targetCol === undefined) {
+            game.waitingForTarget = true;
+            game.pendingSpellAction = { type: "Freeze" };
+            return "Click the top-left square of a 2x2 area to freeze.";
+          }
+          
+          // Validate 2x2 area fits on board
+          if (targetRow < 0 || targetRow > 6 || targetCol < 0 || targetCol > 6) {
+            return "Invalid area. Must be a valid 2x2 square on the board.";
+          }
+          
+          const squares = [
+            {row: targetRow, col: targetCol},
+            {row: targetRow, col: targetCol + 1},
+            {row: targetRow + 1, col: targetCol},
+            {row: targetRow + 1, col: targetCol + 1}
+          ];
           
           game.freezeEffect = {
             active: true,
-            squares: [
-              {row: centerRow, col: centerCol},
-              {row: centerRow, col: centerCol + 1},
-              {row: centerRow + 1, col: centerCol},
-              {row: centerRow + 1, col: centerCol + 1}
-            ],
+            squares: squares,
             remainingTurns: 2,
             totalTurns: 2,
             caster: game.currentPlayer
           };
           
-          return `❄️ Freeze spell activated! 2x2 area frozen for 2 turns at (${centerRow},${centerCol}).`;
+          game.waitingForTarget = false;
+          game.pendingSpellAction = null;
+          return `❄️ Freeze spell activated! 2x2 area frozen for 2 turns at (${targetRow},${targetCol}).`;
         }
       },
       Necromancy: {
         name: "Necromancy",
-        description: "Bring a piece back from the dead.",
+        description: "Bring a piece back from the dead near your king. Click an empty square adjacent to your king to revive a piece there.",
         condition: "Roll a 15 or higher.",
         minRoll: 15,
-        effect: (game) => {
+        requiresTarget: true,
+        effect: (game, targetRow, targetCol) => {
+          const king = game.findKing(game.currentPlayer);
+          if (!king) return "King not found";
+          
+          if (targetRow === undefined || targetCol === undefined) {
+            game.waitingForTarget = true;
+            game.pendingSpellAction = { type: "Necromancy", king: king };
+            return "Click an empty square adjacent to your king to revive a piece.";
+          }
+          
+          // Check if target is adjacent to king
+          const rowDiff = Math.abs(targetRow - king.row);
+          const colDiff = Math.abs(targetCol - king.col);
+          
+          if (rowDiff > 1 || colDiff > 1 || (rowDiff === 0 && colDiff === 0)) {
+            return "Target must be adjacent to your king.";
+          }
+          
+          const piece = game.getPieceAt(targetRow, targetCol);
+          if (piece) return "Square must be empty to revive piece.";
+          
           const graveyard = game.capturedPieces[game.currentPlayer];
-          if (graveyard.length === 0) return "Graveyard is empty.";
+          if (graveyard.length === 0) {
+            game.waitingForTarget = false;
+            game.pendingSpellAction = null;
+            return "Graveyard is empty.";
+          }
           
           const revived = graveyard.pop();
-          const emptySpot = game.findEmptySpot();
-          if (!emptySpot) return "No space to revive the piece.";
-          
-          game.board[emptySpot.row][emptySpot.col] = revived;
-          return `💀 ${revived} has been revived at (${emptySpot.row}, ${emptySpot.col}).`;
+          game.board[targetRow][targetCol] = revived;
+          game.waitingForTarget = false;
+          game.pendingSpellAction = null;
+          return `💀 ${revived} has been revived at (${targetRow}, ${targetCol}).`;
         }
       },
       Agility: {
@@ -192,14 +276,22 @@ class MagicalChessGame {
       },
       Fireball: {
         name: "Fireball",
-        description: "Cast a fireball that captures the targeted piece and all adjacent pieces within 1 square.",
+        description: "Cast a fireball at a target square. Captures the piece there and all adjacent pieces within 1 square.",
         condition: "Roll a 15 or higher.",
         minRoll: 15,
-        effect: (game) => {
-          const enemyPieces = game.findEnemyPieces();
-          if (enemyPieces.length === 0) return "No enemy pieces to target";
+        requiresTarget: true,
+        effect: (game, targetRow, targetCol) => {
+          if (targetRow === undefined || targetCol === undefined) {
+            game.waitingForTarget = true;
+            game.pendingSpellAction = { type: "Fireball" };
+            return "Click a target square to cast fireball.";
+          }
           
-          const target = enemyPieces[Math.floor(Math.random() * enemyPieces.length)];
+          if (targetRow < 0 || targetRow >= 8 || targetCol < 0 || targetCol >= 8) {
+            return "Invalid target square.";
+          }
+          
+          const target = { row: targetRow, col: targetCol };
           const impactedSquares = game.getFireballImpactArea(target);
           
           let capturedCount = 0;
@@ -210,23 +302,45 @@ class MagicalChessGame {
               capturedCount++;
             }
           }
+          
+          game.waitingForTarget = false;
+          game.pendingSpellAction = null;
           return `🔥 Fireball exploded! ${capturedCount} pieces captured.`;
         }
       },
       Invisibility_Potion: {
         name: "Invisibility Potion",
-        description: "Make any one of your pieces 'invisible' for 2 turns. Requires perception check to capture.",
+        description: "Make one of your pieces invisible for 2 turns. Click your piece to make it invisible.",
         condition: "Requires a 13 or higher.",
         minRoll: 13,
         duration: 2,
-        effect: (game, roll) => {
-          if (roll < 13) return "Roll too low";
+        requiresTarget: true,
+        effect: (game, targetRow, targetCol) => {
+          if (targetRow === undefined || targetCol === undefined) {
+            game.waitingForTarget = true;
+            game.pendingSpellAction = { type: "Invisibility_Potion" };
+            return "Click one of your pieces to make it invisible.";
+          }
           
-          const ownPieces = game.findOwnPieces();
-          if (ownPieces.length === 0) return "No pieces to make invisible";
+          const piece = game.getPieceAt(targetRow, targetCol);
+          if (!piece) return "No piece at that square.";
           
-          game.playerState[game.currentPlayer].invisibilityTurns = 2;
-          return "👻 A piece has been made invisible for 2 turns.";
+          const ownSymbols = game.currentPlayer === "white" ? 
+            ["♖", "♘", "♗", "♕", "♔", "♙"] : 
+            ["♜", "♞", "♝", "♛", "♚", "♟"];
+          
+          if (!ownSymbols.includes(piece)) return "Must target your own piece.";
+          if (piece === "♚" || piece === "♔") return "Cannot make king invisible.";
+          
+          // Store invisible piece
+          if (!game.playerState[game.currentPlayer].invisiblePiece) {
+            game.playerState[game.currentPlayer].invisiblePiece = { row: targetRow, col: targetCol };
+            game.playerState[game.currentPlayer].invisibilityTurns = 2;
+          }
+          
+          game.waitingForTarget = false;
+          game.pendingSpellAction = null;
+          return `👻 ${piece} at (${targetRow}, ${targetCol}) is now invisible for 2 turns.`;
         }
       },
       Queens_Soul: {
@@ -248,14 +362,34 @@ class MagicalChessGame {
     return {
       Knife: {
         name: "Knife",
-        description: "Stab a piece adjacent to the one using the knife. You can use this to capture your own.",
-        effect: (game) => {
-          const enemyPieces = game.findEnemyPieces();
-          if (enemyPieces.length === 0) return "No enemy pieces to target";
+        description: "Stab a piece adjacent to your king. Click an adjacent square to capture the piece there.",
+        requiresTarget: true,
+        effect: (game, targetRow, targetCol) => {
+          const king = game.findKing(game.currentPlayer);
+          if (!king) return "King not found";
           
-          const target = enemyPieces[Math.floor(Math.random() * enemyPieces.length)];
-          game.capturePieceAt(target.row, target.col);
-          return "🗡️ Stabbed an enemy piece!";
+          if (targetRow === undefined || targetCol === undefined) {
+            game.waitingForTarget = true;
+            game.pendingSpellAction = { type: "Knife", king: king };
+            return "Click an adjacent square to stab.";
+          }
+          
+          // Check if target is adjacent to king
+          const rowDiff = Math.abs(targetRow - king.row);
+          const colDiff = Math.abs(targetCol - king.col);
+          
+          if (rowDiff > 1 || colDiff > 1 || (rowDiff === 0 && colDiff === 0)) {
+            return "Target must be adjacent to your king.";
+          }
+          
+          const piece = game.getPieceAt(targetRow, targetCol);
+          if (!piece) return "No piece to stab at that square.";
+          if (piece === "♚" || piece === "♔") return "Cannot stab king.";
+          
+          game.capturePieceAt(targetRow, targetCol);
+          game.waitingForTarget = false;
+          game.pendingSpellAction = null;
+          return `🗡️ Stabbed ${piece} at (${targetRow}, ${targetCol})!`;
         }
       },
       Magic_Wand: {
@@ -269,40 +403,70 @@ class MagicalChessGame {
       },
       Barrier: {
         name: "Barrier",
-        description: "Place a barrier that covers one square. Lasts for 5 turns.",
+        description: "Place a barrier on an empty square. Click a square to place the barrier. Lasts for 5 turns.",
         duration: 5,
-        effect: (game) => {
-          const emptySpot = game.findEmptySpot();
-          if (!emptySpot) return "No space to place barrier.";
+        requiresTarget: true,
+        effect: (game, targetRow, targetCol) => {
+          if (targetRow === undefined || targetCol === undefined) {
+            game.waitingForTarget = true;
+            game.pendingSpellAction = { type: "Barrier" };
+            return "Click an empty square to place barrier.";
+          }
+          
+          if (targetRow < 0 || targetRow >= 8 || targetCol < 0 || targetCol >= 8) {
+            return "Invalid square.";
+          }
+          
+          const piece = game.getPieceAt(targetRow, targetCol);
+          if (piece) return "Square must be empty to place barrier.";
+          if (game.isSquareFrozen(targetRow, targetCol)) return "Cannot place barrier on frozen square.";
           
           game.barriers.push({
-            ...emptySpot,
+            row: targetRow,
+            col: targetCol,
             remainingTurns: 5,
             caster: game.currentPlayer
           });
-          return `🚧 Barrier placed at (${emptySpot.row}, ${emptySpot.col}) for 5 turns.`;
+          
+          game.waitingForTarget = false;
+          game.pendingSpellAction = null;
+          return `🚧 Barrier placed at (${targetRow}, ${targetCol}) for 5 turns.`;
         }
       },
       Fishing_Net: {
         name: "Fishing Net",
-        description: "Temporarily capture a piece from the board for 3 turns, then return it.",
+        description: "Temporarily capture an enemy piece for 3 turns, then return it. Click a piece to capture.",
         duration: 3,
-        effect: (game) => {
-          const enemyPieces = game.findEnemyPieces();
-          if (enemyPieces.length === 0) return "No enemy pieces to capture";
+        requiresTarget: true,
+        effect: (game, targetRow, targetCol) => {
+          if (targetRow === undefined || targetCol === undefined) {
+            game.waitingForTarget = true;
+            game.pendingSpellAction = { type: "Fishing_Net" };
+            return "Click an enemy piece to temporarily capture.";
+          }
           
-          const target = enemyPieces[Math.floor(Math.random() * enemyPieces.length)];
-          if (target.piece === "♚" || target.piece === "♔") return "Cannot capture king";
+          const piece = game.getPieceAt(targetRow, targetCol);
+          if (!piece) return "No piece at that square.";
+          if (piece === "♚" || piece === "♔") return "Cannot capture king.";
+          
+          // Check if it's an enemy piece
+          const enemySymbols = game.currentPlayer === "white" ? 
+            ["♜", "♞", "♝", "♛", "♚", "♟"] : 
+            ["♖", "♘", "♗", "♕", "♔", "♙"];
+          
+          if (!enemySymbols.includes(piece)) return "Must target an enemy piece.";
           
           game.temporaryCaptures.push({
-            piece: target.piece,
-            originalPosition: { row: target.row, col: target.col },
+            piece: piece,
+            originalPosition: { row: targetRow, col: targetCol },
             remainingTurns: 3,
             caster: game.currentPlayer
           });
           
-          game.board[target.row][target.col] = "";
-          return `🕸️ Piece temporarily captured for 3 turns.`;
+          game.board[targetRow][targetCol] = "";
+          game.waitingForTarget = false;
+          game.pendingSpellAction = null;
+          return `🕸️ ${piece} temporarily captured for 3 turns.`;
         }
       },
       Time_Machine: {
@@ -317,27 +481,27 @@ class MagicalChessGame {
       },
       Skip: {
         name: "Skip",
-        description: "End your turn without making a move.",
+        description: "Skip the current phase (move, spell, or item) and proceed to the next phase.",
         effect: (game) => {
-          game.processEndTurn();
-          return "⏭️ Turn skipped.";
+          // Skip current phase
+          if (game.turnPhase === "move") {
+            game.turnPhase = "spell";
+            return "⏭️ Move phase skipped. Proceed to spell phase.";
+          } else if (game.turnPhase === "spell") {
+            game.turnPhase = "item";
+            return "⏭️ Spell phase skipped. Proceed to item phase.";
+          } else {
+            game.turnPhase = "move";
+            return "⏭️ Item phase skipped. Proceed to move phase.";
+          }
         }
       },
       Lucky_Coin: {
         name: "Lucky Coin",
-        description: "Flip a coin for random good or bad effect.",
+        description: "Gain +1 spell use this turn. No randomness - always beneficial.",
         effect: (game) => {
-          const coinFlip = Math.random() > 0.5;
-          if (coinFlip) {
-            // Good effect: Extra spell use
-            game.spellsUsedThisTurn = Math.max(0, game.spellsUsedThisTurn - 1);
-            return "🪙 Heads! Good fortune! +1 spell use this turn.";
-          } else {
-            // Bad effect: Lose a turn counter
-            const state = game.playerState[game.currentPlayer];
-            if (state.rageTurns > 0) state.rageTurns--;
-            return "🪙 Tails! Bad luck! Lost 1 turn from an active effect.";
-          }
+          game.spellsUsedThisTurn = Math.max(0, game.spellsUsedThisTurn - 1);
+          return "🪙 Good fortune! +1 spell use this turn.";
         }
       },
       Mana_Potion: {
@@ -347,12 +511,59 @@ class MagicalChessGame {
           game.spellsUsedThisTurn = Math.max(0, game.spellsUsedThisTurn - 1);
           return "🧪 Mana restored! +1 spell use this turn.";
         }
+      },
+      Wontan: {
+        name: "Wontan",
+        description: "Powerful smite that captures an enemy piece. Click an enemy piece to smite it.",
+        condition: "Roll a 17 or higher.",
+        minRoll: 17,
+        requiresTarget: true,
+        effect: (game, targetRow, targetCol) => {
+          if (targetRow === undefined || targetCol === undefined) {
+            game.waitingForTarget = true;
+            game.pendingSpellAction = { type: "Wontan" };
+            return "Click an enemy piece to smite.";
+          }
+          
+          const piece = game.getPieceAt(targetRow, targetCol);
+          if (!piece) return "No piece at that square.";
+          if (piece === "♚" || piece === "♔") return "Cannot smite king.";
+          
+          // Check if it's an enemy piece
+          const enemySymbols = game.currentPlayer === "white" ? 
+            ["♜", "♞", "♝", "♛", "♚", "♟"] : 
+            ["♖", "♘", "♗", "♕", "♔", "♙"];
+          
+          if (!enemySymbols.includes(piece)) return "Must target an enemy piece.";
+          
+          game.capturePieceAt(targetRow, targetCol);
+          game.waitingForTarget = false;
+          game.pendingSpellAction = null;
+          return `⚡ Wontan smote ${piece} at (${targetRow}, ${targetCol})!`;
+        }
+      },
+      Ladder: {
+        name: "Ladder",
+        description: "Allow a piece to jump over other pieces this turn. Select a piece, then it can jump over obstacles.",
+        effect: (game) => {
+          // Enable jumping for all pieces this turn
+          game.playerState[game.currentPlayer].ladderActive = true;
+          game.playerState[game.currentPlayer].ladderTurns = 1;
+          return "🪜 Ladder activated! Your pieces can jump over others this turn.";
+        }
       }
     };
   }
 
   // Create effects display to show active timers
   createEffectsDisplay() {
+    // Check if effects display already exists in HTML
+    const existingDisplay = document.querySelector('.effects-display');
+    if (existingDisplay) {
+      // Effects display already exists in HTML, don't create duplicate
+      return;
+    }
+    
     const gameArea = document.querySelector('.game-area');
     if (!gameArea) return;
     
@@ -398,6 +609,9 @@ class MagicalChessGame {
       if (state.invisibilityTurns > 0) {
         effects.push(`${playerColor} ${player} Invisibility: ${state.invisibilityTurns} turns`);
       }
+      if (state.ladderTurns > 0) {
+        effects.push(`${playerColor} ${player} Ladder: ${state.ladderTurns} turns`);
+      }
     }
     
     // Check barriers
@@ -432,10 +646,40 @@ class MagicalChessGame {
     this.currentDiceRoll = null;
     this.selectedSpell = null;
     this.selectedItem = null;
+    this.turnPhase = "move";
+    this.movesThisTurn = 0;
+    this.waitingForTarget = false;
+    this.pendingSpellAction = null;
     
     // Update displays
     this.updateEffectsDisplay();
     this.updateUI();
+  }
+  
+  // Skip turn button handler
+  skipTurn() {
+    if (this.waitingForTarget) {
+      this.waitingForTarget = false;
+      this.pendingSpellAction = null;
+      this.selectedSpell = null;
+      this.selectedItem = null;
+      this.updateSpellsUI();
+      this.updateItemsUI();
+      return "Targeting cancelled.";
+    }
+    
+    this.processEndTurn();
+    return "Turn skipped.";
+  }
+  
+  // End turn button handler (confirmation)
+  endTurn() {
+    if (this.waitingForTarget) {
+      return "Please complete targeting or cancel first.";
+    }
+    
+    this.processEndTurn();
+    return "Turn ended.";
   }
 
   // Comprehensive timer decrement system
@@ -485,7 +729,16 @@ class MagicalChessGame {
       if (state.invisibilityTurns > 0) {
         state.invisibilityTurns--;
         if (state.invisibilityTurns === 0) {
+          state.invisiblePiece = null;
           console.log(`👻 ${player} Invisibility effect ended`);
+        }
+      }
+      
+      if (state.ladderTurns > 0) {
+        state.ladderTurns--;
+        if (state.ladderTurns === 0) {
+          state.ladderActive = false;
+          console.log(`🪜 ${player} Ladder effect ended`);
         }
       }
     }
@@ -662,7 +915,7 @@ class MagicalChessGame {
 
   updateSpellsUI() {
     document.querySelectorAll(".spell-card").forEach(card => {
-      card.classList.remove("selected", "disabled");
+      card.classList.remove("selected", "disabled", "limit-reached");
       const spellKey = card.dataset.spell;
       const spell = this.spells[spellKey];
       
@@ -672,6 +925,21 @@ class MagicalChessGame {
       
       if (this.spellsUsedThisTurn >= 3) {
         card.classList.add("disabled");
+      }
+      
+      // Check per-spell limit
+      const limit = spell_limit[spellKey];
+      if (limit) {
+        const used = this.playerState[this.currentPlayer].spellsUsed[spellKey] || 0;
+        if (used >= limit) {
+          card.classList.add("limit-reached", "disabled");
+          const usageText = document.createElement("div");
+          usageText.className = "spell-usage";
+          usageText.textContent = `Used: ${used}/${limit}`;
+          if (!card.querySelector(".spell-usage")) {
+            card.appendChild(usageText);
+          }
+        }
       }
     });
   }
@@ -697,6 +965,15 @@ class MagicalChessGame {
     const spell = this.spells[spellKey];
     if (!spell) return "Spell not found";
     
+    // Check per-spell usage limit
+    const limit = spell_limit[spellKey];
+    if (limit) {
+      const used = this.playerState[this.currentPlayer].spellsUsed[spellKey] || 0;
+      if (used >= limit) {
+        return `${spell.name} has reached its usage limit (${limit}).`;
+      }
+    }
+    
     if (this.currentDiceRoll === null) {
       return "Please roll dice first";
     }
@@ -705,9 +982,25 @@ class MagicalChessGame {
       return `Roll too low. Need ${spell.minRoll} or higher.`;
     }
     
+    // Call spell effect
     const result = spell.effect(this);
+    
+    // If spell requires target and is now waiting, don't increment usage yet
+    if (spell.requiresTarget && this.waitingForTarget) {
+      // Don't increment usage yet, wait for target selection
+      return result;
+    }
+    
+    // Spell was successfully used, increment counters
     this.spellsUsedThisTurn++;
+    if (limit) {
+      if (!this.playerState[this.currentPlayer].spellsUsed[spellKey]) {
+        this.playerState[this.currentPlayer].spellsUsed[spellKey] = 0;
+      }
+      this.playerState[this.currentPlayer].spellsUsed[spellKey]++;
+    }
     this.selectedSpell = null;
+    
     this.updateSpellsUI();
     this.updateEffectsDisplay();
     
@@ -727,6 +1020,13 @@ class MagicalChessGame {
       result = item.effect(this);
     }
     
+    // If item requires target and is now waiting, don't increment usage yet
+    if (item.requiresTarget && this.waitingForTarget) {
+      // Don't increment usage yet, wait for target selection
+      return result;
+    }
+    
+    // Item was successfully used, increment counters
     this.itemsUsedThisTurn++;
     this.selectedItem = null;
     this.updateItemsUI();
@@ -849,7 +1149,12 @@ class MagicalChessGame {
       const piece = this.board[row][col];
 
       square.innerHTML = "";
-      square.classList.remove("selected", "valid-move", "in-check", "frozen", "barrier");
+      square.classList.remove("selected", "valid-move", "in-check", "frozen", "barrier", "targeting");
+      
+      // Highlight squares when waiting for target
+      if (this.waitingForTarget) {
+        square.classList.add("targeting");
+      }
 
       // Add magical effects
       if (this.isSquareFrozen(row, col)) {
@@ -896,6 +1201,49 @@ class MagicalChessGame {
   handleSquareClick(row, col) {
     if (this.gameStatus !== "active" && this.gameStatus !== "check") return;
 
+    // Handle spell/item targeting
+    if (this.waitingForTarget && this.pendingSpellAction) {
+      const action = this.pendingSpellAction;
+      let result;
+      
+      if (this.selectedSpell) {
+        const spell = this.spells[this.selectedSpell];
+        result = spell.effect(this, row, col);
+        
+        // If targeting completed, finalize spell usage
+        if (!this.waitingForTarget) {
+          this.spellsUsedThisTurn++;
+          const limit = spell_limit[this.selectedSpell];
+          if (limit) {
+            if (!this.playerState[this.currentPlayer].spellsUsed[this.selectedSpell]) {
+              this.playerState[this.currentPlayer].spellsUsed[this.selectedSpell] = 0;
+            }
+            this.playerState[this.currentPlayer].spellsUsed[this.selectedSpell]++;
+          }
+          this.selectedSpell = null;
+          this.updateSpellsUI();
+        }
+        
+        this.displaySpellResult(result);
+      } else if (this.selectedItem) {
+        const item = this.items[this.selectedItem];
+        result = item.effect(this, row, col);
+        
+        if (!this.waitingForTarget) {
+          this.itemsUsedThisTurn++;
+          this.selectedItem = null;
+          this.updateItemsUI();
+        }
+        
+        this.displayItemResult(result);
+      }
+      
+      this.updateBoardDisplay();
+      this.updateEffectsDisplay();
+      return;
+    }
+
+    // Normal move handling
     if (this.selectedSquare) {
       if (this.selectedSquare.row === row && this.selectedSquare.col === col) {
         this.selectedSquare = null;
@@ -1057,8 +1405,11 @@ class MagicalChessGame {
     let currentRow = fromRow + rowStep;
     let currentCol = fromCol + colStep;
 
+    // If ladder is active, pieces can jump over other pieces (but not barriers/frozen)
+    const canJump = this.playerState[this.currentPlayer].ladderActive;
+
     while (currentRow !== toRow || currentCol !== toCol) {
-      if (this.board[currentRow][currentCol]) return false;
+      if (this.board[currentRow][currentCol] && !canJump) return false;
       if (this.isSquareFrozen(currentRow, currentCol) || this.isSquareBarrier(currentRow, currentCol)) return false;
       currentRow += rowStep;
       currentCol += colStep;
@@ -1134,8 +1485,15 @@ class MagicalChessGame {
       captured: capturedPiece,
     });
 
-    // Process end of turn with timer updates
-    this.processEndTurn();
+    this.movesThisTurn++;
+    
+    // Check if player has extra move from Agility
+    if (this.playerState[this.currentPlayer].extraMove && this.movesThisTurn < 2) {
+      // Allow another move - don't end turn yet
+    } else {
+      // Normal turn flow - automatically switch turns after move
+      this.processEndTurn();
+    }
 
     // Check game status
     this.checkGameStatus();
@@ -1270,9 +1628,15 @@ class MagicalChessGame {
   updateUI() {
     const currentPlayerElement = document.getElementById("currentPlayer");
     const statusElement = document.getElementById("gameStatus");
+    const turnPhaseElement = document.getElementById("turnPhase");
 
     if (currentPlayerElement) {
       currentPlayerElement.textContent = this.currentPlayer.charAt(0).toUpperCase() + this.currentPlayer.slice(1);
+    }
+
+    if (turnPhaseElement) {
+      const phaseNames = { move: "Move", spell: "Spell", item: "Item" };
+      turnPhaseElement.textContent = phaseNames[this.turnPhase] || "Move";
     }
 
     if (statusElement) {
@@ -1330,6 +1694,10 @@ class MagicalChessGame {
     this.selectedSpell = null;
     this.selectedItem = null;
     this.turnCounter = 0;
+    this.turnPhase = "move";
+    this.movesThisTurn = 0;
+    this.waitingForTarget = false;
+    this.pendingSpellAction = null;
     
     this.playerState = {
       white: { 
@@ -1340,7 +1708,11 @@ class MagicalChessGame {
         agilityTurns: 0,
         magicWandTurns: 0,
         invisibilityTurns: 0,
-        barrierTurns: 0
+        barrierTurns: 0,
+        spellsUsed: {},
+        invisiblePiece: null,
+        ladderActive: false,
+        ladderTurns: 0
       },
       black: { 
         rageTurns: 0, 
@@ -1350,7 +1722,11 @@ class MagicalChessGame {
         agilityTurns: 0,
         magicWandTurns: 0,
         invisibilityTurns: 0,
-        barrierTurns: 0
+        barrierTurns: 0,
+        spellsUsed: {},
+        invisiblePiece: null,
+        ladderActive: false,
+        ladderTurns: 0
       }
     };
 
@@ -1414,6 +1790,39 @@ function initializeMagicalChessGame() {
       });
     }
 
+    // Skip Turn button
+    const skipTurnButton = document.getElementById("skipTurnButton");
+    if (skipTurnButton) {
+      skipTurnButton.addEventListener("click", () => {
+        const result = game.skipTurn();
+        if (result) {
+          const statusElement = document.getElementById("gameStatus");
+          if (statusElement) {
+            statusElement.textContent = result;
+            setTimeout(() => game.updateUI(), 1000);
+          }
+        }
+        game.updateUI();
+      });
+    }
+
+    // End Turn button
+    const endTurnButton = document.getElementById("endTurnButton");
+    if (endTurnButton) {
+      endTurnButton.addEventListener("click", () => {
+        const result = game.endTurn();
+        if (result) {
+          const statusElement = document.getElementById("gameStatus");
+          if (statusElement) {
+            statusElement.textContent = result;
+            setTimeout(() => game.updateUI(), 1000);
+          }
+        }
+        game.updateUI();
+      });
+    }
+
+
     // Enhanced keyboard shortcuts
     document.addEventListener("keydown", (e) => {
       if (e.key === "s" && game.selectedSpell) {
@@ -1425,6 +1834,10 @@ function initializeMagicalChessGame() {
         const result = game.useItem(game.selectedItem);
         game.displayItemResult(result);
         game.updateSpellItemButtons();
+      }
+      if (e.key === "e" && e.ctrlKey) {
+        game.endTurn();
+        game.updateUI();
       }
     });
   }, 100);
@@ -1455,8 +1868,11 @@ MagicalChessGame.prototype.displaySpellResult = function(result) {
   if (spellResult) {
     spellResult.textContent = result;
     spellResult.className = "spell-result active";
+    spellResult.style.color = "#000000";
+    spellResult.style.backgroundColor = "#ffffff";
     setTimeout(() => {
       spellResult.className = "spell-result";
+      spellResult.style.color = "#000000";
     }, 3000);
   }
   console.log(`Spell Result: ${result}`);
@@ -1467,8 +1883,11 @@ MagicalChessGame.prototype.displayItemResult = function(result) {
   if (itemResult) {
     itemResult.textContent = result;
     itemResult.className = "item-result active";
+    itemResult.style.color = "#000000";
+    itemResult.style.backgroundColor = "#ffffff";
     setTimeout(() => {
       itemResult.className = "item-result";
+      itemResult.style.color = "#000000";
     }, 3000);
   }
   console.log(`Item Result: ${result}`);

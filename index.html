@@ -21,9 +21,16 @@
           <div class="chess-board" id="chessBoard"></div>
           <div id="gameStatus"></div>
           <div class="game-controls">
-            <button id="resetButton">Reset Game</button>
-            <button id="rollDiceButton">Roll Dice</button>
+            <div class="button-row">
+              <button id="rollDiceButton">Roll Dice</button>
+              <button id="resetButton">Reset Game</button>
+            </div>
+            <div class="button-row">
+              <button id="skipTurnButton">Skip Turn</button>
+              <button id="endTurnButton">End Turn</button>
+            </div>
             <div class="dice-result" id="diceResult"></div>
+            <div class="turn-phase">Phase: <span id="turnPhase">Move</span></div>
           </div>
         </div>
 

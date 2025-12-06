@@ -103,8 +103,8 @@ body {
 }
 
 .spell-card.selected, .item-card.selected {
-  border-color: #ffd700;
-  background: rgba(255, 215, 0, 0.2);
+  border-color: #2196F3;
+  background: rgba(33, 150, 243, 0.2);
 }
 
 .spell-card.disabled, .item-card.disabled {
@@ -232,6 +232,14 @@ body {
   gap: 10px;
 }
 
+.button-row {
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+  width: 100%;
+  justify-content: center;
+}
+
 .dice-result {
   color: white;
   font-size: 18px;
@@ -245,13 +253,14 @@ body {
 }
 
 .game-status {
-  color: white;
+  color: #000000;
   font-size: 16px;
   padding: 10px;
   border-radius: 5px;
   text-align: center;
   font-weight: bold;
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+  background: rgba(255, 255, 255, 0.9);
+  text-shadow: none;
 }
 
 .game-status.check {
@@ -675,7 +684,7 @@ button:disabled {
   text-align: center;
   min-height: 20px;
   background: rgba(255, 255, 255, 0.1);
-  color: #ccc;
+  color: #000000;
   transition: all 0.3s ease;
   opacity: 0;
   transform: translateY(-10px);
@@ -685,33 +694,61 @@ button:disabled {
 .item-result.active {
   opacity: 1;
   transform: translateY(0);
-  background: rgba(76, 175, 80, 0.2);
-  color: #4CAF50;
-  border: 1px solid rgba(76, 175, 80, 0.3);
+  background: #ffffff !important;
+  color: #000000 !important;
+  border: 2px solid #000000 !important;
   animation: resultPulse 0.5s ease-out;
+  font-weight: bold !important;
+}
+
+.spell-result.active *,
+.item-result.active * {
+  color: #000000 !important;
+}
+
+.spell-result,
+.item-result {
+  color: #000000 !important;
+}
+
+/* Force black text for all spell/item result content */
+#spellResult,
+#itemResult {
+  color: #000000 !important;
+}
+
+#spellResult.active,
+#itemResult.active {
+  color: #000000 !important;
+  background: #ffffff !important;
+}
+
+#spellResult *,
+#itemResult * {
+  color: #000000 !important;
 }
 
 @keyframes resultPulse {
   0% { 
     transform: scale(1);
-    box-shadow: 0 0 0 rgba(76, 175, 80, 0.4);
+    box-shadow: 0 0 0 rgba(255, 255, 255, 0.4);
   }
   50% { 
     transform: scale(1.05);
-    box-shadow: 0 0 10px rgba(76, 175, 80, 0.6);
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.6);
   }
   100% { 
     transform: scale(1);
-    box-shadow: 0 0 0 rgba(76, 175, 80, 0.4);
+    box-shadow: 0 0 0 rgba(255, 255, 255, 0.4);
   }
 }
 
 /* Enhanced spell/item card selection */
 .spell-card.selected,
 .item-card.selected {
-  border-color: #4CAF50 !important;
-  background: rgba(76, 175, 80, 0.2) !important;
-  box-shadow: 0 0 15px rgba(76, 175, 80, 0.4) !important;
+  border-color: #2196F3 !important;
+  background: rgba(33, 150, 243, 0.2) !important;
+  box-shadow: 0 0 15px rgba(33, 150, 243, 0.4) !important;
   transform: scale(1.02);
 }
 
@@ -750,10 +787,20 @@ button:disabled {
   margin-top: 15px;
 }
 
+.button-row {
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+  width: 100%;
+  justify-content: center;
+}
+
 .game-controls button {
   min-width: 120px;
   padding: 12px 20px;
   font-size: 16px;
+  flex: 1;
+  max-width: 150px;
 }
 
 /* Responsive adjustments for spell/item usage */
@@ -774,6 +821,7 @@ button:disabled {
   .item-result {
     font-size: 11px;
     padding: 6px 10px;
+    color: #000000 !important;
   }
 }
 
@@ -794,6 +842,7 @@ button:disabled {
   .item-result {
     font-size: 10px;
     padding: 4px 8px;
+    color: #000000 !important;
   }
   
   .dice-result {
@@ -827,10 +876,10 @@ button:disabled {
 
 @keyframes selectionGlow {
   0%, 100% { 
-    background: linear-gradient(45deg, transparent, rgba(76, 175, 80, 0.1), transparent);
+    background: linear-gradient(45deg, transparent, rgba(33, 150, 243, 0.1), transparent);
   }
   50% { 
-    background: linear-gradient(45deg, transparent, rgba(76, 175, 80, 0.3), transparent);
+    background: linear-gradient(45deg, transparent, rgba(33, 150, 243, 0.3), transparent);
   }
 }
 
