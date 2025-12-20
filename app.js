@@ -211,8 +211,8 @@ class MagicalChessGame {
           game.freezeEffect = {
             active: true,
             squares: squares,
-            remainingTurns: 2,
-            totalTurns: 2,
+            remainingTurns: 4,
+            totalTurns: 4,
             caster: game.currentPlayer
           };
           
