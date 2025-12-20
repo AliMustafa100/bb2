@@ -1302,8 +1302,8 @@ class MagicalChessGame {
     const piece = this.board[fromRow][fromCol];
     if (!piece) return false;
 
-    //
-    if (this.isSquareFrozen(fromRow,fromCol)) return false; 
+    // Can't move from frozen squares (pieces are frozen in place)
+    if (this.isSquareFrozen(fromRow, fromCol)) return false;
 
     // Can't move to frozen or barrier squares
     if (this.isSquareFrozen(toRow, toCol) || this.isSquareBarrier(toRow, toCol)) return false;
@@ -1445,7 +1445,16 @@ class MagicalChessGame {
 
     // Handle en passant capture
     if ((piece === "♙" || piece === "♟") && !capturedPiece && Math.abs(toCol - fromCol) === 1) {
+      const enPassantCaptured = this.board[fromRow][toCol];
+      if (enPassantCaptured) {
+        this.capturedPieces[this.currentPlayer].push(enPassantCaptured);
+      }
       this.board[fromRow][toCol] = "";
+    }
+
+    // Add captured piece to graveyard
+    if (capturedPiece) {
+      this.capturedPieces[this.currentPlayer].push(capturedPiece);
     }
 
     // Handle castling
@@ -1665,6 +1674,42 @@ class MagicalChessGame {
     this.updateSpellsUI();
     this.updateItemsUI();
     this.updateEffectsDisplay();
+    this.updateGraveyardDisplay();
+  }
+
+  updateGraveyardDisplay() {
+    const whiteGraveyard = document.getElementById("whiteGraveyard");
+    const blackGraveyard = document.getElementById("blackGraveyard");
+    
+    if (whiteGraveyard) {
+      if (this.capturedPieces.white.length === 0) {
+        whiteGraveyard.textContent = "Empty";
+        whiteGraveyard.className = "graveyard-pieces empty";
+      } else {
+        whiteGraveyard.className = "graveyard-pieces";
+        whiteGraveyard.innerHTML = this.capturedPieces.white.map(piece => {
+          const span = document.createElement("span");
+          span.className = "graveyard-piece white-piece";
+          span.textContent = piece;
+          return span.outerHTML;
+        }).join("");
+      }
+    }
+    
+    if (blackGraveyard) {
+      if (this.capturedPieces.black.length === 0) {
+        blackGraveyard.textContent = "Empty";
+        blackGraveyard.className = "graveyard-pieces empty";
+      } else {
+        blackGraveyard.className = "graveyard-pieces";
+        blackGraveyard.innerHTML = this.capturedPieces.black.map(piece => {
+          const span = document.createElement("span");
+          span.className = "graveyard-piece black-piece";
+          span.textContent = piece;
+          return span.outerHTML;
+        }).join("");
+      }
+    }
   }
 
   resetGame() {
