@@ -206,9 +206,6 @@ class MagicalChessGame {
             {row: targetRow, col: targetCol + 1},
             {row: targetRow + 1, col: targetCol},
             {row: targetRow + 1, col: targetCol + 1},
-            {row: targetRow, col: targetCol + 2},
-            {row: targetRow + 2, col: targetCol},
-            {row: targetRow + 2, col: targetCol + 2}
           ];
           
           game.freezeEffect = {
