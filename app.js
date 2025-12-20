@@ -1302,6 +1302,9 @@ class MagicalChessGame {
     const piece = this.board[fromRow][fromCol];
     if (!piece) return false;
 
+    //
+    if (this.isSquareFrozen(fromRow,fromCol)) return false; 
+
     // Can't move to frozen or barrier squares
     if (this.isSquareFrozen(toRow, toCol) || this.isSquareBarrier(toRow, toCol)) return false;
 
