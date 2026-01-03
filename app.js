@@ -1035,6 +1035,12 @@ class MagicalChessGame {
       return result;
     }
     
+    // If spell is waiting for graveyard selection (Necromancy), don't increment usage yet
+    if (this.waitingForGraveyardSelection) {
+      // Don't increment usage yet, wait for graveyard piece selection
+      return result;
+    }
+    
     // Spell was successfully used, increment counters
     this.spellsUsedThisTurn++;
     if (limit) {
@@ -1759,9 +1765,10 @@ class MagicalChessGame {
           if (isSelecting && this.currentPlayer === "white") {
             span.dataset.pieceIndex = index;
             span.style.cursor = "pointer";
-            span.addEventListener("click", (e) => {
+            const game = this; // Capture 'this' for the event listener
+            span.addEventListener("click", function(e) {
               e.stopPropagation();
-              this.selectGraveyardPiece(index);
+              game.selectGraveyardPiece(index);
             });
           }
           newWhiteGraveyard.appendChild(span);
@@ -1791,9 +1798,10 @@ class MagicalChessGame {
           if (isSelecting && this.currentPlayer === "black") {
             span.dataset.pieceIndex = index;
             span.style.cursor = "pointer";
-            span.addEventListener("click", (e) => {
+            const game = this; // Capture 'this' for the event listener
+            span.addEventListener("click", function(e) {
               e.stopPropagation();
-              this.selectGraveyardPiece(index);
+              game.selectGraveyardPiece(index);
             });
           }
           newBlackGraveyard.appendChild(span);
@@ -1803,6 +1811,10 @@ class MagicalChessGame {
   }
   
   selectGraveyardPiece(pieceIndex) {
+    console.log("selectGraveyardPiece called with index:", pieceIndex);
+    console.log("waitingForGraveyardSelection:", this.waitingForGraveyardSelection);
+    console.log("selectedSpell:", this.selectedSpell);
+    
     if (this.waitingForGraveyardSelection && this.selectedSpell === "Necromancy") {
       const spell = this.spells["Necromancy"];
       const result = spell.effect(this, pieceIndex);
@@ -1825,6 +1837,9 @@ class MagicalChessGame {
       this.displaySpellResult(result);
       this.updateEffectsDisplay();
       this.updateGraveyardDisplay();
+      this.updateUI();
+    } else {
+      console.log("Conditions not met for graveyard selection");
     }
   }
 
@@ -1915,6 +1930,49 @@ if (document.readyState === "loading") {
 function initializeMagicalChessGame() {
   setTimeout(() => {
     console.log("Creating game instance..."); game = new MagicalChessGame(); console.log("Game created:", game);
+
+    // Initialize dropdown menus
+    const spellsDropdownHeader = document.getElementById("spellsDropdownHeader");
+    const spellsDropdownContent = document.getElementById("spellsDropdownContent");
+    const spellsDropdownSection = spellsDropdownHeader?.closest(".dropdown-section");
+    
+    if (spellsDropdownHeader && spellsDropdownSection) {
+      spellsDropdownHeader.addEventListener("click", () => {
+        spellsDropdownSection.classList.toggle("collapsed");
+      });
+      // Optional: hover to expand (comment out if you only want click)
+      spellsDropdownSection.addEventListener("mouseenter", () => {
+        spellsDropdownSection.classList.remove("collapsed");
+      });
+    }
+    
+    const itemsDropdownHeader = document.getElementById("itemsDropdownHeader");
+    const itemsDropdownContent = document.getElementById("itemsDropdownContent");
+    const itemsDropdownSection = itemsDropdownHeader?.closest(".dropdown-section");
+    
+    if (itemsDropdownHeader && itemsDropdownSection) {
+      itemsDropdownHeader.addEventListener("click", () => {
+        itemsDropdownSection.classList.toggle("collapsed");
+      });
+      // Optional: hover to expand (comment out if you only want click)
+      itemsDropdownSection.addEventListener("mouseenter", () => {
+        itemsDropdownSection.classList.remove("collapsed");
+      });
+    }
+    
+    // Initialize collapsible rules
+    const rulesHeader = document.getElementById("rulesHeader");
+    const rulesContent = document.getElementById("rulesContent");
+    const rulesSection = rulesHeader?.closest(".rules");
+    
+    if (rulesHeader && rulesSection) {
+      // Start collapsed by default
+      rulesSection.classList.add("collapsed");
+      
+      rulesHeader.addEventListener("click", () => {
+        rulesSection.classList.toggle("collapsed");
+      });
+    }
 
     const resetButton = document.getElementById("resetButton");
     if (resetButton) {

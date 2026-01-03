@@ -65,6 +65,62 @@ body {
   gap: 20px;
 }
 
+/* Dropdown Sections */
+.dropdown-section {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  backdrop-filter: blur(5px);
+  color: white;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.dropdown-header {
+  padding: 15px 20px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  user-select: none;
+  transition: background 0.2s ease;
+}
+
+.dropdown-header:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.dropdown-header h3 {
+  margin: 0;
+  color: #fff;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.dropdown-arrow {
+  font-size: 12px;
+  transition: transform 0.3s ease;
+  color: #ffd700;
+}
+
+.dropdown-section.collapsed .dropdown-arrow {
+  transform: rotate(-90deg);
+}
+
+.dropdown-content {
+  max-height: 600px;
+  overflow-y: auto;
+  transition: max-height 0.3s ease, padding 0.3s ease, opacity 0.3s ease;
+  padding: 0 20px 20px 20px;
+  opacity: 1;
+}
+
+.dropdown-section.collapsed .dropdown-content {
+  max-height: 0;
+  padding: 0 20px;
+  overflow: hidden;
+  opacity: 0;
+}
+
+/* Legacy support for old class names */
 .spells-section, .items-section {
   background: rgba(255, 255, 255, 0.1);
   padding: 20px;
@@ -282,15 +338,54 @@ body {
   grid-area: rules;
   color: white;
   background: rgba(255, 255, 255, 0.1);
-  padding: 20px;
   border-radius: 12px;
   backdrop-filter: blur(5px);
+  overflow: hidden;
 }
 
-.rules h3 {
-  margin-top: 0;
+.rules-header {
+  padding: 15px 20px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  user-select: none;
+  transition: background 0.2s ease;
+}
+
+.rules-header:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.rules-header h3 {
+  margin: 0;
   color: #fff;
   text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.rules-toggle {
+  font-size: 12px;
+  transition: transform 0.3s ease;
+  color: #ffd700;
+}
+
+.rules.collapsed .rules-toggle {
+  transform: rotate(-90deg);
+}
+
+.rules-content {
+  padding: 0 20px 20px 20px;
+  max-height: 800px;
+  overflow-y: auto;
+  transition: max-height 0.3s ease, padding 0.3s ease, opacity 0.3s ease;
+  opacity: 1;
+}
+
+.rules.collapsed .rules-content {
+  max-height: 0;
+  padding: 0 20px;
+  overflow: hidden;
+  opacity: 0;
 }
 
 .rules h4 {
@@ -909,7 +1004,6 @@ button:disabled {
 
 /* Graveyard Display Styles */
 .graveyard-section {
-  margin-top: 20px;
   padding: 15px;
   background: rgba(0, 0, 0, 0.3);
   border-radius: 8px;

@@ -35,31 +35,7 @@
         </div>
 
         <div class="magical-section">
-          <div class="spells-section">
-            <h3>Spells</h3>
-            <div class="spells-grid" id="spellsGrid"></div>
-            <div class="spell-usage">
-              <button id="useSpellButton" disabled>Use Selected Spell (S)</button>
-              <div id="spellResult" class="spell-result"></div>
-            </div>
-          </div>
-          
-          <div class="items-section">
-            <h3>Items</h3>
-            <div class="items-grid" id="itemsGrid"></div>
-            <div class="item-usage">
-              <button id="useItemButton" disabled>Use Selected Item (I)</button>
-              <div id="itemResult" class="item-result"></div>
-            </div>
-          </div>
-          
-          <!-- Enhanced Effects Display -->
-          <div class="effects-display">
-            <h3>Active Effects</h3>
-            <div id="activeEffectsList" class="effects-list"></div>
-          </div>
-          
-          <!-- Graveyard Display -->
+          <!-- Graveyard Display - Moved Up -->
           <div class="graveyard-section">
             <h3>Graveyard</h3>
             <div class="graveyard-display">
@@ -73,12 +49,51 @@
               </div>
             </div>
           </div>
+          
+          <!-- Enhanced Effects Display -->
+          <div class="effects-display">
+            <h3>Active Effects</h3>
+            <div id="activeEffectsList" class="effects-list"></div>
+          </div>
+          
+          <!-- Spells Dropdown -->
+          <div class="dropdown-section">
+            <div class="dropdown-header" id="spellsDropdownHeader">
+              <h3>Spells</h3>
+              <span class="dropdown-arrow">▼</span>
+            </div>
+            <div class="dropdown-content" id="spellsDropdownContent">
+              <div class="spells-grid" id="spellsGrid"></div>
+              <div class="spell-usage">
+                <button id="useSpellButton" disabled>Use Selected Spell (S)</button>
+                <div id="spellResult" class="spell-result"></div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Items Dropdown -->
+          <div class="dropdown-section">
+            <div class="dropdown-header" id="itemsDropdownHeader">
+              <h3>Items</h3>
+              <span class="dropdown-arrow">▼</span>
+            </div>
+            <div class="dropdown-content" id="itemsDropdownContent">
+              <div class="items-grid" id="itemsGrid"></div>
+              <div class="item-usage">
+                <button id="useItemButton" disabled>Use Selected Item (I)</button>
+                <div id="itemResult" class="item-result"></div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
       <div class="rules">
-        <h3>Game Rules</h3>
-        <div class="rules-content">
+        <div class="rules-header" id="rulesHeader">
+          <h3>Game Rules</h3>
+          <span class="rules-toggle">▼</span>
+        </div>
+        <div class="rules-content" id="rulesContent">
           <h4>Chess Rules:</h4>
           <ul>
             <li>Standard chess piece movement</li>
