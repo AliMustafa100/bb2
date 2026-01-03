@@ -85,7 +85,7 @@ class MagicalChessGame {
     this.temporaryCaptures = [];
     
     this.barriers = [];
-    this.capturedPieces = { white: [], black: [] };
+    this.capturedPieces = { white: [], black: [] }; // Array of {piece, row, col} objects
     this.currentDiceRoll = null;
     this.spellsUsedThisTurn = 0;
     this.itemsUsedThisTurn = 0;
@@ -223,43 +223,51 @@ class MagicalChessGame {
       },
       Necromancy: {
         name: "Necromancy",
-        description: "Bring a piece back from the dead near your king. Click an empty square adjacent to your king to revive a piece there.",
+        description: "Bring a piece back from the dead at the same place it died. If that space is taken, the revival is invalid.",
         condition: "Roll a 15 or higher.",
         minRoll: 15,
-        requiresTarget: true,
-        effect: (game, targetRow, targetCol) => {
-          const king = game.findKing(game.currentPlayer);
-          if (!king) return "King not found";
-          
-          if (targetRow === undefined || targetCol === undefined) {
-            game.waitingForTarget = true;
-            game.pendingSpellAction = { type: "Necromancy", king: king };
-            return "Click an empty square adjacent to your king to revive a piece.";
-          }
-          
-          // Check if target is adjacent to king
-          const rowDiff = Math.abs(targetRow - king.row);
-          const colDiff = Math.abs(targetCol - king.col);
-          
-          if (rowDiff > 1 || colDiff > 1 || (rowDiff === 0 && colDiff === 0)) {
-            return "Target must be adjacent to your king.";
-          }
-          
-          const piece = game.getPieceAt(targetRow, targetCol);
-          if (piece) return "Square must be empty to revive piece.";
-          
+        requiresTarget: false,
+        effect: (game) => {
           const graveyard = game.capturedPieces[game.currentPlayer];
           if (graveyard.length === 0) {
-            game.waitingForTarget = false;
-            game.pendingSpellAction = null;
             return "Graveyard is empty.";
           }
           
-          const revived = graveyard.pop();
-          game.board[targetRow][targetCol] = revived;
-          game.waitingForTarget = false;
-          game.pendingSpellAction = null;
-          return `💀 ${revived} has been revived at (${targetRow}, ${targetCol}).`;
+          // Find the most recently captured piece with position information
+          // (in case there are old format entries without position)
+          let lastCapturedIndex = -1;
+          let lastCaptured = null;
+          for (let i = graveyard.length - 1; i >= 0; i--) {
+            const entry = graveyard[i];
+            if (typeof entry === 'object' && entry.piece && entry.row !== undefined && entry.col !== undefined) {
+              lastCaptured = entry;
+              lastCapturedIndex = i;
+              break;
+            }
+          }
+          
+          if (!lastCaptured) {
+            return "Invalid - no pieces with death location information found in graveyard.";
+          }
+          
+          const { piece, row, col } = lastCaptured;
+          
+          // Check if the original death location is available
+          const currentPiece = game.getPieceAt(row, col);
+          if (currentPiece) {
+            return "Invalid - the space where the piece died is now occupied.";
+          }
+          
+          // Check if the square is frozen or has a barrier
+          if (game.isSquareFrozen(row, col) || game.isSquareBarrier(row, col)) {
+            return "Invalid - the space where the piece died is blocked (frozen or has barrier).";
+          }
+          
+          // Revive the piece at its original death location
+          game.board[row][col] = piece;
+          graveyard.splice(lastCapturedIndex, 1); // Remove the specific entry from graveyard
+          
+          return `💀 ${piece} has been revived at (${row}, ${col}) - the same place it died.`;
         }
       },
       Agility: {
@@ -1096,7 +1104,8 @@ class MagicalChessGame {
   capturePieceAt(row, col) {
     const piece = this.board[row][col];
     if (piece) {
-      this.capturedPieces[this.currentPlayer].push(piece);
+      // Store piece with its death position
+      this.capturedPieces[this.currentPlayer].push({ piece, row, col });
       this.board[row][col] = "";
     }
   }
@@ -1447,14 +1456,15 @@ class MagicalChessGame {
     if ((piece === "♙" || piece === "♟") && !capturedPiece && Math.abs(toCol - fromCol) === 1) {
       const enPassantCaptured = this.board[fromRow][toCol];
       if (enPassantCaptured) {
-        this.capturedPieces[this.currentPlayer].push(enPassantCaptured);
+        // Store piece with its death position
+        this.capturedPieces[this.currentPlayer].push({ piece: enPassantCaptured, row: fromRow, col: toCol });
       }
       this.board[fromRow][toCol] = "";
     }
 
-    // Add captured piece to graveyard
+    // Add captured piece to graveyard with its death position
     if (capturedPiece) {
-      this.capturedPieces[this.currentPlayer].push(capturedPiece);
+      this.capturedPieces[this.currentPlayer].push({ piece: capturedPiece, row: toRow, col: toCol });
     }
 
     // Handle castling
@@ -1687,7 +1697,8 @@ class MagicalChessGame {
         whiteGraveyard.className = "graveyard-pieces empty";
       } else {
         whiteGraveyard.className = "graveyard-pieces";
-        whiteGraveyard.innerHTML = this.capturedPieces.white.map(piece => {
+        whiteGraveyard.innerHTML = this.capturedPieces.white.map(captured => {
+          const piece = captured.piece || captured; // Support both old format (string) and new format (object)
           const span = document.createElement("span");
           span.className = "graveyard-piece white-piece";
           span.textContent = piece;
@@ -1702,7 +1713,8 @@ class MagicalChessGame {
         blackGraveyard.className = "graveyard-pieces empty";
       } else {
         blackGraveyard.className = "graveyard-pieces";
-        blackGraveyard.innerHTML = this.capturedPieces.black.map(piece => {
+        blackGraveyard.innerHTML = this.capturedPieces.black.map(captured => {
+          const piece = captured.piece || captured; // Support both old format (string) and new format (object)
           const span = document.createElement("span");
           span.className = "graveyard-piece black-piece";
           span.textContent = piece;
@@ -1735,7 +1747,7 @@ class MagicalChessGame {
     };
     this.temporaryCaptures = [];
     this.barriers = [];
-    this.capturedPieces = { white: [], black: [] };
+    this.capturedPieces = { white: [], black: [] }; // Array of {piece, row, col} objects
     this.currentDiceRoll = null;
     this.spellsUsedThisTurn = 0;
     this.itemsUsedThisTurn = 0;
