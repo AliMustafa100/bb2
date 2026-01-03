@@ -70,6 +70,7 @@ class MagicalChessGame {
     
     this.waitingForTarget = false;
     this.pendingSpellAction = null;
+    this.waitingForGraveyardSelection = false; // For Necromancy piece selection
     
     // Enhanced freeze system with proper timer tracking
     this.freezeEffect = {
@@ -222,55 +223,72 @@ class MagicalChessGame {
       },
       Necromancy: {
         name: "Necromancy",
-        description: "Bring a piece back from the dead at the same place it died. If that space is taken, the revival is invalid.",
+        description: "Bring a piece back from the dead at the same place it died. Click a piece in your graveyard to revive it. If that space is taken, the revival is invalid.",
         condition: "Roll a 15 or higher.",
         minRoll: 15,
         requiresTarget: false,
-        effect: (game) => {
+        effect: (game, pieceIndex) => {
           const graveyard = game.capturedPieces[game.currentPlayer];
           if (graveyard.length === 0) {
+            game.waitingForGraveyardSelection = false;
             return "Graveyard is empty.";
           }
           
-          // Find the most recently captured piece with position information
-          // (in case there are old format entries without position)
-          let lastCapturedIndex = -1;
-          let lastCaptured = null;
-          for (let i = graveyard.length - 1; i >= 0; i--) {
-            const entry = graveyard[i];
-            if (typeof entry === 'object' && entry.piece && entry.row !== undefined && entry.col !== undefined) {
-              lastCaptured = entry;
-              lastCapturedIndex = i;
-              break;
-            }
+          // If no piece index provided, enter selection mode
+          if (pieceIndex === undefined) {
+            game.waitingForGraveyardSelection = true;
+            game.updateGraveyardDisplay();
+            return "Click a piece in your graveyard to revive it at the same place it died.";
           }
           
-          if (!lastCaptured) {
-            return "Invalid - no pieces with death location information found in graveyard.";
+          // Validate piece index
+          if (pieceIndex < 0 || pieceIndex >= graveyard.length) {
+            game.waitingForGraveyardSelection = false;
+            return "Invalid piece selection.";
           }
           
-          const { piece, row, col } = lastCaptured;
+          const selectedEntry = graveyard[pieceIndex];
+          
+          // Handle both old format (string) and new format (object)
+          let piece, row, col;
+          if (typeof selectedEntry === 'object' && selectedEntry.piece && selectedEntry.row !== undefined && selectedEntry.col !== undefined) {
+            piece = selectedEntry.piece;
+            row = selectedEntry.row;
+            col = selectedEntry.col;
+          } else {
+            game.waitingForGraveyardSelection = false;
+            game.updateGraveyardDisplay();
+            return "Invalid - selected piece has no death location information.";
+          }
           
           // Verify the piece belongs to the current player
           const pieceOwner = game.isWhitePiece(piece) ? "white" : "black";
           if (pieceOwner !== game.currentPlayer) {
+            game.waitingForGraveyardSelection = false;
+            game.updateGraveyardDisplay();
             return "Invalid - can only revive your own pieces.";
           }
           
           // Check if the original death location is available
           const currentPiece = game.getPieceAt(row, col);
           if (currentPiece) {
+            game.waitingForGraveyardSelection = false;
+            game.updateGraveyardDisplay();
             return "Invalid - the space where the piece died is now occupied.";
           }
           
           // Check if the square is frozen or has a barrier
           if (game.isSquareFrozen(row, col) || game.isSquareBarrier(row, col)) {
+            game.waitingForGraveyardSelection = false;
+            game.updateGraveyardDisplay();
             return "Invalid - the space where the piece died is blocked (frozen or has barrier).";
           }
           
           // Revive the piece at its original death location
           game.board[row][col] = piece;
-          graveyard.splice(lastCapturedIndex, 1); // Remove the specific entry from graveyard
+          graveyard.splice(pieceIndex, 1); // Remove the specific entry from graveyard
+          game.waitingForGraveyardSelection = false;
+          game.updateGraveyardDisplay();
           
           return `💀 ${piece} has been revived at (${row}, ${col}) - the same place it died.`;
         }
@@ -663,6 +681,7 @@ class MagicalChessGame {
     this.movesThisTurn = 0;
     this.waitingForTarget = false;
     this.pendingSpellAction = null;
+    this.waitingForGraveyardSelection = false;
     
     // Update displays
     this.updateEffectsDisplay();
@@ -681,6 +700,14 @@ class MagicalChessGame {
       return "Targeting cancelled.";
     }
     
+    if (this.waitingForGraveyardSelection) {
+      this.waitingForGraveyardSelection = false;
+      this.selectedSpell = null;
+      this.updateSpellsUI();
+      this.updateGraveyardDisplay();
+      return "Graveyard selection cancelled.";
+    }
+    
     this.processEndTurn();
     return "Turn skipped.";
   }
@@ -689,6 +716,10 @@ class MagicalChessGame {
   endTurn() {
     if (this.waitingForTarget) {
       return "Please complete targeting or cancel first.";
+    }
+    
+    if (this.waitingForGraveyardSelection) {
+      return "Please select a piece from graveyard or cancel first.";
     }
     
     this.processEndTurn();
@@ -1703,36 +1734,97 @@ class MagicalChessGame {
     const whiteGraveyard = document.getElementById("whiteGraveyard");
     const blackGraveyard = document.getElementById("blackGraveyard");
     
+    // Check if we're waiting for graveyard selection (Necromancy active)
+    const isSelecting = this.waitingForGraveyardSelection && this.selectedSpell === "Necromancy";
+    
     if (whiteGraveyard) {
+      // Clear existing event listeners by cloning
+      const newWhiteGraveyard = whiteGraveyard.cloneNode(false);
+      whiteGraveyard.parentNode.replaceChild(newWhiteGraveyard, whiteGraveyard);
+      
       if (this.capturedPieces.white.length === 0) {
-        whiteGraveyard.textContent = "Empty";
-        whiteGraveyard.className = "graveyard-pieces empty";
+        newWhiteGraveyard.textContent = "Empty";
+        newWhiteGraveyard.className = "graveyard-pieces empty";
       } else {
-        whiteGraveyard.className = "graveyard-pieces";
-        whiteGraveyard.innerHTML = this.capturedPieces.white.map(captured => {
+        newWhiteGraveyard.className = "graveyard-pieces";
+        if (isSelecting && this.currentPlayer === "white") {
+          newWhiteGraveyard.classList.add("selecting");
+        }
+        
+        this.capturedPieces.white.forEach((captured, index) => {
           const piece = captured.piece || captured; // Support both old format (string) and new format (object)
           const span = document.createElement("span");
-          span.className = "graveyard-piece white-piece";
+          span.className = `graveyard-piece white-piece${isSelecting && this.currentPlayer === "white" ? " selectable" : ""}`;
           span.textContent = piece;
-          return span.outerHTML;
-        }).join("");
+          if (isSelecting && this.currentPlayer === "white") {
+            span.dataset.pieceIndex = index;
+            span.style.cursor = "pointer";
+            span.addEventListener("click", (e) => {
+              e.stopPropagation();
+              this.selectGraveyardPiece(index);
+            });
+          }
+          newWhiteGraveyard.appendChild(span);
+        });
       }
     }
     
     if (blackGraveyard) {
+      // Clear existing event listeners by cloning
+      const newBlackGraveyard = blackGraveyard.cloneNode(false);
+      blackGraveyard.parentNode.replaceChild(newBlackGraveyard, blackGraveyard);
+      
       if (this.capturedPieces.black.length === 0) {
-        blackGraveyard.textContent = "Empty";
-        blackGraveyard.className = "graveyard-pieces empty";
+        newBlackGraveyard.textContent = "Empty";
+        newBlackGraveyard.className = "graveyard-pieces empty";
       } else {
-        blackGraveyard.className = "graveyard-pieces";
-        blackGraveyard.innerHTML = this.capturedPieces.black.map(captured => {
+        newBlackGraveyard.className = "graveyard-pieces";
+        if (isSelecting && this.currentPlayer === "black") {
+          newBlackGraveyard.classList.add("selecting");
+        }
+        
+        this.capturedPieces.black.forEach((captured, index) => {
           const piece = captured.piece || captured; // Support both old format (string) and new format (object)
           const span = document.createElement("span");
-          span.className = "graveyard-piece black-piece";
+          span.className = `graveyard-piece black-piece${isSelecting && this.currentPlayer === "black" ? " selectable" : ""}`;
           span.textContent = piece;
-          return span.outerHTML;
-        }).join("");
+          if (isSelecting && this.currentPlayer === "black") {
+            span.dataset.pieceIndex = index;
+            span.style.cursor = "pointer";
+            span.addEventListener("click", (e) => {
+              e.stopPropagation();
+              this.selectGraveyardPiece(index);
+            });
+          }
+          newBlackGraveyard.appendChild(span);
+        });
       }
+    }
+  }
+  
+  selectGraveyardPiece(pieceIndex) {
+    if (this.waitingForGraveyardSelection && this.selectedSpell === "Necromancy") {
+      const spell = this.spells["Necromancy"];
+      const result = spell.effect(this, pieceIndex);
+      
+      // If targeting completed, finalize spell usage
+      if (!this.waitingForGraveyardSelection) {
+        this.spellsUsedThisTurn++;
+        const limit = spell_limit["Necromancy"];
+        if (limit) {
+          if (!this.playerState[this.currentPlayer].spellsUsed["Necromancy"]) {
+            this.playerState[this.currentPlayer].spellsUsed["Necromancy"] = 0;
+          }
+          this.playerState[this.currentPlayer].spellsUsed["Necromancy"]++;
+        }
+        this.selectedSpell = null;
+        this.updateSpellsUI();
+        this.updateBoardDisplay();
+      }
+      
+      this.displaySpellResult(result);
+      this.updateEffectsDisplay();
+      this.updateGraveyardDisplay();
     }
   }
 
