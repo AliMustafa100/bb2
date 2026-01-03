@@ -251,6 +251,12 @@ class MagicalChessGame {
           
           const { piece, row, col } = lastCaptured;
           
+          // Verify the piece belongs to the current player
+          const pieceOwner = game.isWhitePiece(piece) ? "white" : "black";
+          if (pieceOwner !== game.currentPlayer) {
+            return "Invalid - can only revive your own pieces.";
+          }
+          
           // Check if the original death location is available
           const currentPiece = game.getPieceAt(row, col);
           if (currentPiece) {
@@ -1103,8 +1109,10 @@ class MagicalChessGame {
   capturePieceAt(row, col) {
     const piece = this.board[row][col];
     if (piece) {
-      // Store piece with its death position
-      this.capturedPieces[this.currentPlayer].push({ piece, row, col });
+      // Determine which player owns the captured piece
+      const pieceOwner = this.isWhitePiece(piece) ? "white" : "black";
+      // Store piece with its death position in the correct player's graveyard
+      this.capturedPieces[pieceOwner].push({ piece, row, col });
       this.board[row][col] = "";
     }
   }
@@ -1455,15 +1463,20 @@ class MagicalChessGame {
     if ((piece === "♙" || piece === "♟") && !capturedPiece && Math.abs(toCol - fromCol) === 1) {
       const enPassantCaptured = this.board[fromRow][toCol];
       if (enPassantCaptured) {
-        // Store piece with its death position
-        this.capturedPieces[this.currentPlayer].push({ piece: enPassantCaptured, row: fromRow, col: toCol });
+        // Determine which player owns the captured piece
+        const pieceOwner = this.isWhitePiece(enPassantCaptured) ? "white" : "black";
+        // Store piece with its death position in the correct player's graveyard
+        this.capturedPieces[pieceOwner].push({ piece: enPassantCaptured, row: fromRow, col: toCol });
       }
       this.board[fromRow][toCol] = "";
     }
 
     // Add captured piece to graveyard with its death position
     if (capturedPiece) {
-      this.capturedPieces[this.currentPlayer].push({ piece: capturedPiece, row: toRow, col: toCol });
+      // Determine which player owns the captured piece
+      const pieceOwner = this.isWhitePiece(capturedPiece) ? "white" : "black";
+      // Store piece with its death position in the correct player's graveyard
+      this.capturedPieces[pieceOwner].push({ piece: capturedPiece, row: toRow, col: toCol });
     }
 
     // Handle castling
