@@ -367,6 +367,7 @@ body {
   font-size: 12px;
   transition: transform 0.3s ease;
   color: #ffd700;
+  display: inline-block;
 }
 
 .rules.collapsed .rules-toggle {
@@ -374,18 +375,23 @@ body {
 }
 
 .rules-content {
-  padding: 0 20px 20px 20px;
-  max-height: 800px;
-  overflow-y: auto;
-  transition: max-height 0.3s ease, padding 0.3s ease, opacity 0.3s ease;
+  padding: 20px;
+  max-height: 2000px;
+  overflow: hidden;
+  transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1), 
+              padding 0.4s cubic-bezier(0.4, 0, 0.2, 1), 
+              opacity 0.3s ease;
   opacity: 1;
+  box-sizing: border-box;
 }
 
 .rules.collapsed .rules-content {
-  max-height: 0;
-  padding: 0 20px;
-  overflow: hidden;
+  max-height: 0 !important;
+  padding: 0 20px !important;
+  overflow: hidden !important;
   opacity: 0;
+  margin: 0;
+  border: none;
 }
 
 .rules h4 {

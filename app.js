@@ -1969,8 +1969,15 @@ function initializeMagicalChessGame() {
       // Start collapsed by default
       rulesSection.classList.add("collapsed");
       
-      rulesHeader.addEventListener("click", () => {
+      rulesHeader.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
         rulesSection.classList.toggle("collapsed");
+      });
+      
+      // Optional: hover to expand (like spells/items)
+      rulesSection.addEventListener("mouseenter", () => {
+        rulesSection.classList.remove("collapsed");
       });
     }
 
