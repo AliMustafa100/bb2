@@ -4,7 +4,6 @@ const spell_limit ={
   Thunder_Spell: 1,
   Rage: 1,
   Freeze: 1,
-  Necromancy: 1,
   Agility: 1,
   Fireball: 1,
   Invisibility_Potion: 1,
