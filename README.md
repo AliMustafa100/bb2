@@ -189,5 +189,9 @@ Feel free to contribute by:
 - Adding new features
 - Writing tests
 
-## License
-ISC License - see package.json for details.
+## Improvements
+- Drop Down mensu for Spells and Items ( Hover or Click )
+- Minimize the game rule menu
+- Move the graveyard up
+- 
+
