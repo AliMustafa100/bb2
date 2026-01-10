@@ -19,7 +19,6 @@
             Current Player: <span id="currentPlayer">White</span>
           </div>
           <div class="chess-board" id="chessBoard"></div>
-          <div id="gameStatus"></div>
           <div class="game-controls">
             <div class="button-row">
               <button id="rollDiceButton">Roll Dice</button>
@@ -31,6 +30,40 @@
             </div>
             <div class="dice-result" id="diceResult"></div>
             <div class="turn-phase">Phase: <span id="turnPhase">Move</span></div>
+          </div>
+          
+          <!-- Game Rules moved here, right under phase bar -->
+          <div class="rules">
+            <div class="rules-header" id="rulesHeader">
+              <h3>Game Rules</h3>
+              <span class="rules-toggle">▼</span>
+            </div>
+            <div class="rules-content" id="rulesContent">
+              <h4>Chess Rules:</h4>
+              <ul>
+                <li>Standard chess piece movement</li>
+                <li>Capture the opponent's king to win</li>
+                <li>Check and checkmate rules apply</li>
+              </ul>
+              
+              <h4>Magical Rules:</h4>
+              <ul>
+                <li>Roll dice to use spells (5-17+ required)</li>
+                <li>Spells can only be used by the king</li>
+                <li>Items can be used by any piece</li>
+                <li>Up to 3 spells or items per turn</li>
+                <li>Spells can't kill the king</li>
+                <li>King can't be revived</li>
+              </ul>
+              
+              <h4>How to Use Spells/Items:</h4>
+              <ul>
+                <li>1. Roll dice first</li>
+                <li>2. Click on a spell or item to select it</li>
+                <li>3. Click "Use Selected Spell/Item" or press S/I</li>
+                <li>4. Watch the effects display for active timers</li>
+              </ul>
+            </div>
           </div>
         </div>
 
@@ -52,43 +85,13 @@
               <div id="itemResult" class="item-result"></div>
             </div>
           </div>
-          
-          <!-- Enhanced Effects Display -->
-          <div class="effects-display">
-            <h3>Active Effects</h3>
-            <div id="activeEffectsList" class="effects-list"></div>
-          </div>
         </div>
       </div>
 
-      <div class="rules">
-        <h3>Game Rules</h3>
-        <div class="rules-content">
-          <h4>Chess Rules:</h4>
-          <ul>
-            <li>Standard chess piece movement</li>
-            <li>Capture the opponent's king to win</li>
-            <li>Check and checkmate rules apply</li>
-          </ul>
-          
-          <h4>Magical Rules:</h4>
-          <ul>
-            <li>Roll dice to use spells (5-17+ required)</li>
-            <li>Spells can only be used by the king</li>
-            <li>Items can be used by any piece</li>
-            <li>Up to 3 spells or items per turn</li>
-            <li>Spells can't kill the king</li>
-            <li>King can't be revived</li>
-          </ul>
-          
-          <h4>How to Use Spells/Items:</h4>
-          <ul>
-            <li>1. Roll dice first</li>
-            <li>2. Click on a spell or item to select it</li>
-            <li>3. Click "Use Selected Spell/Item" or press S/I</li>
-            <li>4. Watch the effects display for active timers</li>
-          </ul>
-        </div>
+      <!-- Active Effects moved to rules area -->
+      <div class="effects-display">
+        <h3>Active Effects</h3>
+        <div id="activeEffectsList" class="effects-list"></div>
       </div>
     </div>
     <script src="app.js"></script>

@@ -1725,7 +1725,7 @@ class MagicalChessGame {
           statusElement.className = "game-status stalemate";
           break;
         default:
-          statusElement.textContent = `Game in progress - Turn ${this.turnCounter}`;
+          statusElement.textContent = "";
           statusElement.className = "game-status";
       }
     }
@@ -1973,11 +1973,6 @@ function initializeMagicalChessGame() {
         e.preventDefault();
         e.stopPropagation();
         rulesSection.classList.toggle("collapsed");
-      });
-      
-      // Optional: hover to expand (like spells/items)
-      rulesSection.addEventListener("mouseenter", () => {
-        rulesSection.classList.remove("collapsed");
       });
     }
 
