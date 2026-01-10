@@ -78,9 +78,11 @@ body {
   border-radius: 12px;
   backdrop-filter: blur(5px);
   color: white;
-  overflow: hidden;
+  overflow: hidden; /* Keep hidden for border-radius clipping */
   transition: all 0.3s ease;
   border: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  flex-direction: column;
 }
 
 .dropdown-header {
@@ -124,7 +126,7 @@ body {
 }
 
 .dropdown-content {
-  max-height: 800px;
+  max-height: 600px;
   overflow-y: auto;
   overflow-x: hidden;
   transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1), 
@@ -135,6 +137,36 @@ body {
   opacity: 1;
   margin: 0;
   box-sizing: border-box;
+  -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+  scrollbar-width: thin; /* Firefox */
+  scrollbar-color: rgba(255, 215, 0, 0.5) rgba(255, 255, 255, 0.1); /* Firefox */
+}
+
+/* Custom scrollbar for WebKit browsers */
+.dropdown-content::-webkit-scrollbar {
+  width: 8px;
+}
+
+.dropdown-content::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+}
+
+.dropdown-content::-webkit-scrollbar-thumb {
+  background: rgba(255, 215, 0, 0.5);
+  border-radius: 4px;
+}
+
+.dropdown-content::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 215, 0, 0.7);
+}
+
+/* When expanded, ensure scrolling works */
+.dropdown-section:not(.collapsed) .dropdown-content {
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  max-height: 600px !important;
+  display: block !important;
 }
 
 .dropdown-section.collapsed .dropdown-content {
@@ -166,6 +198,9 @@ body {
   grid-template-columns: repeat(2, 1fr);
   gap: 10px;
   margin-top: 15px;
+  overflow: visible;
+  min-height: fit-content;
+  width: 100%;
 }
 
 .spell-card, .item-card {
