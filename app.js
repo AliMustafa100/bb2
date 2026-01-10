@@ -1931,32 +1931,32 @@ function initializeMagicalChessGame() {
   setTimeout(() => {
     console.log("Creating game instance..."); game = new MagicalChessGame(); console.log("Game created:", game);
 
-    // Initialize dropdown menus
+    // Initialize dropdown menus - start collapsed, expand on click
     const spellsDropdownHeader = document.getElementById("spellsDropdownHeader");
-    const spellsDropdownContent = document.getElementById("spellsDropdownContent");
     const spellsDropdownSection = spellsDropdownHeader?.closest(".dropdown-section");
     
     if (spellsDropdownHeader && spellsDropdownSection) {
-      spellsDropdownHeader.addEventListener("click", () => {
+      // Start collapsed by default
+      spellsDropdownSection.classList.add("collapsed");
+      
+      spellsDropdownHeader.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
         spellsDropdownSection.classList.toggle("collapsed");
-      });
-      // Optional: hover to expand (comment out if you only want click)
-      spellsDropdownSection.addEventListener("mouseenter", () => {
-        spellsDropdownSection.classList.remove("collapsed");
       });
     }
     
     const itemsDropdownHeader = document.getElementById("itemsDropdownHeader");
-    const itemsDropdownContent = document.getElementById("itemsDropdownContent");
     const itemsDropdownSection = itemsDropdownHeader?.closest(".dropdown-section");
     
     if (itemsDropdownHeader && itemsDropdownSection) {
-      itemsDropdownHeader.addEventListener("click", () => {
+      // Start collapsed by default
+      itemsDropdownSection.classList.add("collapsed");
+      
+      itemsDropdownHeader.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
         itemsDropdownSection.classList.toggle("collapsed");
-      });
-      // Optional: hover to expand (comment out if you only want click)
-      itemsDropdownSection.addEventListener("mouseenter", () => {
-        itemsDropdownSection.classList.remove("collapsed");
       });
     }
     

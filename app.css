@@ -80,6 +80,7 @@ body {
   color: white;
   overflow: hidden;
   transition: all 0.3s ease;
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .dropdown-header {
@@ -90,40 +91,57 @@ body {
   align-items: center;
   user-select: none;
   transition: background 0.2s ease;
+  background: rgba(255, 255, 255, 0.05);
 }
 
 .dropdown-header:hover {
   background: rgba(255, 255, 255, 0.15);
 }
 
+.dropdown-header:active {
+  background: rgba(255, 255, 255, 0.2);
+}
+
 .dropdown-header h3 {
   margin: 0;
   color: #fff;
   text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+  font-size: 18px;
+  font-weight: 600;
 }
 
 .dropdown-arrow {
-  font-size: 12px;
-  transition: transform 0.3s ease;
+  font-size: 16px;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   color: #ffd700;
+  display: inline-block;
+  transform: rotate(-90deg); /* Start pointing right (collapsed state) */
+  font-weight: bold;
 }
 
-.dropdown-section.collapsed .dropdown-arrow {
-  transform: rotate(-90deg);
+.dropdown-section:not(.collapsed) .dropdown-arrow {
+  transform: rotate(0deg); /* Point down when expanded */
 }
 
 .dropdown-content {
-  max-height: 600px;
+  max-height: 800px;
   overflow-y: auto;
-  transition: max-height 0.3s ease, padding 0.3s ease, opacity 0.3s ease;
-  padding: 0 20px 20px 20px;
+  overflow-x: hidden;
+  transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1), 
+              padding 0.4s cubic-bezier(0.4, 0, 0.2, 1), 
+              opacity 0.3s ease,
+              margin 0.3s ease;
+  padding: 20px;
   opacity: 1;
+  margin: 0;
+  box-sizing: border-box;
 }
 
 .dropdown-section.collapsed .dropdown-content {
-  max-height: 0;
-  padding: 0 20px;
-  overflow: hidden;
+  max-height: 0 !important;
+  padding: 0 20px !important;
+  margin: 0 !important;
+  overflow: hidden !important;
   opacity: 0;
 }
 
