@@ -18,22 +18,48 @@
       
       <div class="game-area">
         <div class="board-section">
-          <div class="current-player">
+          <div class="current-player" role="status" aria-live="polite">
             Current Player: <span id="currentPlayer">White</span>
           </div>
-          <div class="chess-board" id="chessBoard"></div>
-          <div id="gameStatus"></div>
+          <div class="chess-board-wrapper">
+            <div class="board-coordinates">
+              <div class="coords-row coords-letters">
+                <span></span>
+                <span>A</span><span>B</span><span>C</span><span>D</span><span>E</span><span>F</span><span>G</span><span>H</span>
+              </div>
+              <div class="board-with-coords">
+                <div class="coords-col coords-numbers">
+                  <span>8</span><span>7</span><span>6</span><span>5</span><span>4</span><span>3</span><span>2</span><span>1</span>
+                </div>
+                <div class="chess-board" id="chessBoard" role="grid" aria-label="Chess board"></div>
+                <div class="coords-col coords-numbers">
+                  <span>8</span><span>7</span><span>6</span><span>5</span><span>4</span><span>3</span><span>2</span><span>1</span>
+                </div>
+              </div>
+              <div class="coords-row coords-letters">
+                <span></span>
+                <span>A</span><span>B</span><span>C</span><span>D</span><span>E</span><span>F</span><span>G</span><span>H</span>
+              </div>
+            </div>
+          </div>
+          <div id="gameStatus" role="status" aria-live="polite"></div>
           <div class="game-controls">
+            <div class="turn-phase" role="status" aria-live="polite">
+              <span class="phase-label">Phase:</span> <span id="turnPhase" class="phase-value">Move</span>
+            </div>
+            <div class="dice-result" id="diceResult" role="status" aria-live="polite"></div>
             <div class="button-row">
-              <button id="rollDiceButton">Roll Dice</button>
-              <button id="resetButton">Reset Game</button>
+              <button id="rollDiceButton" aria-label="Roll dice to use spells or items">Roll Dice</button>
+              <button id="resetButton" aria-label="Reset game to starting position">Reset Game</button>
             </div>
             <div class="button-row">
-              <button id="skipTurnButton">Skip Turn</button>
-              <button id="endTurnButton">End Turn</button>
+              <button id="skipTurnButton" aria-label="Skip current phase">Skip Phase</button>
+              <button id="endTurnButton" aria-label="End turn and switch players">End Turn</button>
             </div>
-            <div class="dice-result" id="diceResult"></div>
-            <div class="turn-phase">Phase: <span id="turnPhase">Move</span></div>
+          </div>
+          <div class="move-history-section">
+            <h4>Recent Moves</h4>
+            <div id="moveHistory" class="move-history" role="log" aria-live="polite" aria-label="Move history"></div>
           </div>
         </div>
 
@@ -66,10 +92,10 @@
               <span class="dropdown-arrow">▼</span>
             </div>
             <div class="dropdown-content" id="spellsDropdownContent">
-              <div class="spells-grid" id="spellsGrid"></div>
+              <div class="spells-grid" id="spellsGrid" role="list" aria-label="Available spells"></div>
               <div class="spell-usage">
-                <button id="useSpellButton" disabled>Use Selected Spell (S)</button>
-                <div id="spellResult" class="spell-result"></div>
+                <button id="useSpellButton" disabled aria-label="Use selected spell">Use Selected Spell <span class="keyboard-hint">(S)</span></button>
+                <div id="spellResult" class="spell-result" role="status" aria-live="polite"></div>
               </div>
             </div>
           </div>
@@ -81,10 +107,10 @@
               <span class="dropdown-arrow">▼</span>
             </div>
             <div class="dropdown-content" id="itemsDropdownContent">
-              <div class="items-grid" id="itemsGrid"></div>
+              <div class="items-grid" id="itemsGrid" role="list" aria-label="Available items"></div>
               <div class="item-usage">
-                <button id="useItemButton" disabled>Use Selected Item (I)</button>
-                <div id="itemResult" class="item-result"></div>
+                <button id="useItemButton" disabled aria-label="Use selected item">Use Selected Item <span class="keyboard-hint">(I)</span></button>
+                <div id="itemResult" class="item-result" role="status" aria-live="polite"></div>
               </div>
             </div>
           </div>
@@ -118,8 +144,15 @@
           <ul>
             <li>1. Roll dice first</li>
             <li>2. Click on a spell or item to select it</li>
-            <li>3. Click "Use Selected Spell/Item" or press S/I</li>
+            <li>3. Click "Use Selected Spell/Item" or press <kbd>S</kbd>/<kbd>I</kbd></li>
             <li>4. Watch the effects display for active timers</li>
+          </ul>
+          <h4>Keyboard Shortcuts:</h4>
+          <ul>
+            <li><kbd>S</kbd> - Use selected spell</li>
+            <li><kbd>I</kbd> - Use selected item</li>
+            <li><kbd>R</kbd> - Roll dice</li>
+            <li><kbd>Esc</kbd> - Deselect piece/spell/item</li>
           </ul>
         </div>
       </div>

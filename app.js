@@ -94,6 +94,7 @@ class MagicalChessGame {
     this.turnCounter = 0;
     this.turnPhase = "move"; // "move", "spell", "item" - current phase of turn
     this.movesThisTurn = 0;
+    this.lastMove = null; // Track last move for highlighting
 
     console.log("Creating board..."); this.createBoard();
     console.log("Creating spells UI..."); this.createSpellsUI();
@@ -909,7 +910,19 @@ class MagicalChessGame {
         <div class="spell-condition">${spell.condition}</div>
       `;
       
+      // Add tooltip with full description
+      spellCard.setAttribute('data-tooltip', `${spell.description} ${spell.condition}`);
+      spellCard.setAttribute('tabindex', '0');
+      spellCard.setAttribute('role', 'button');
+      spellCard.setAttribute('aria-label', `${spell.name}. ${spell.description} ${spell.condition}`);
+      
       spellCard.addEventListener("click", () => this.selectSpell(key));
+      spellCard.addEventListener("keydown", (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          this.selectSpell(key);
+        }
+      });
       spellsGrid.appendChild(spellCard);
     });
   }
@@ -924,13 +937,26 @@ class MagicalChessGame {
       itemCard.dataset.item = key;
       
       const durationText = item.duration ? ` (${item.duration} turns)` : '';
+      const tooltipText = item.description + (item.condition ? ` ${item.condition}` : '');
       itemCard.innerHTML = `
         <div class="item-name">${item.name}${durationText}</div>
         <div class="item-description">${item.description}</div>
         ${item.condition ? `<div class="item-condition">${item.condition}</div>` : ''}
       `;
       
+      // Add tooltip with full description
+      itemCard.setAttribute('data-tooltip', tooltipText);
+      itemCard.setAttribute('tabindex', '0');
+      itemCard.setAttribute('role', 'button');
+      itemCard.setAttribute('aria-label', `${item.name}. ${tooltipText}`);
+      
       itemCard.addEventListener("click", () => this.selectItem(key));
+      itemCard.addEventListener("keydown", (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          this.selectItem(key);
+        }
+      });
       itemsGrid.appendChild(itemCard);
     });
   }
@@ -1202,7 +1228,16 @@ class MagicalChessGame {
       const piece = this.board[row][col];
 
       square.innerHTML = "";
-      square.classList.remove("selected", "valid-move", "in-check", "frozen", "barrier", "targeting");
+      square.classList.remove("selected", "valid-move", "in-check", "frozen", "barrier", "targeting", "last-move");
+      
+      // Highlight last move squares
+      if (this.lastMove) {
+        const isFrom = this.lastMove.from[0] === row && this.lastMove.from[1] === col;
+        const isTo = this.lastMove.to[0] === row && this.lastMove.to[1] === col;
+        if (isFrom || isTo) {
+          square.classList.add("last-move");
+        }
+      }
       
       // Highlight squares when waiting for target
       if (this.waitingForTarget) {
@@ -1549,12 +1584,21 @@ class MagicalChessGame {
     this.updateCastlingRights(piece, fromRow, fromCol, toRow, toCol);
 
     // Record move
+    const moveNotation = this.getMoveNotation(piece, fromRow, fromCol, toRow, toCol, capturedPiece);
     this.moveHistory.push({
       from: [fromRow, fromCol],
       to: [toRow, toCol],
       piece,
       captured: capturedPiece,
+      notation: moveNotation,
+      player: this.currentPlayer
     });
+    
+    // Track last move for highlighting
+    this.lastMove = {
+      from: [fromRow, fromCol],
+      to: [toRow, toCol]
+    };
 
     this.movesThisTurn++;
     
@@ -1696,6 +1740,78 @@ class MagicalChessGame {
     return false;
   }
 
+  // Convert position to algebraic notation (e.g., [7, 4] -> "e1")
+  getSquareNotation(row, col) {
+    const letters = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
+    const numbers = ['8', '7', '6', '5', '4', '3', '2', '1'];
+    return letters[col] + numbers[row];
+  }
+
+  // Get piece symbol for notation
+  getPieceSymbol(piece) {
+    const symbols = {
+      '♔': 'K', '♚': 'K',
+      '♕': 'Q', '♛': 'Q',
+      '♖': 'R', '♜': 'R',
+      '♗': 'B', '♝': 'B',
+      '♘': 'N', '♞': 'N',
+      '♙': '', '♟': ''
+    };
+    return symbols[piece] || '';
+  }
+
+  // Generate move notation (simplified algebraic notation)
+  getMoveNotation(piece, fromRow, fromCol, toRow, toCol, captured) {
+    const pieceSymbol = this.getPieceSymbol(piece);
+    const fromSquare = this.getSquareNotation(fromRow, fromCol);
+    const toSquare = this.getSquareNotation(toRow, toCol);
+    const capture = captured ? 'x' : '';
+    
+    // Handle castling
+    if ((piece === '♔' || piece === '♚') && Math.abs(toCol - fromCol) === 2) {
+      return toCol > fromCol ? 'O-O' : 'O-O-O';
+    }
+    
+    // Handle pawn moves
+    if (!pieceSymbol) {
+      return captured ? `${fromSquare[0]}x${toSquare}` : toSquare;
+    }
+    
+    return pieceSymbol + capture + toSquare;
+  }
+
+  // Update move history display
+  updateMoveHistoryDisplay() {
+    const moveHistoryElement = document.getElementById("moveHistory");
+    if (!moveHistoryElement) return;
+
+    if (this.moveHistory.length === 0) {
+      moveHistoryElement.innerHTML = '<div class="move-history-empty">No moves yet</div>';
+      return;
+    }
+
+    // Show last 10 moves
+    const recentMoves = this.moveHistory.slice(-10);
+    moveHistoryElement.innerHTML = '';
+
+    recentMoves.forEach((move, index) => {
+      const moveItem = document.createElement("div");
+      moveItem.className = "move-history-item";
+      const moveNumber = this.moveHistory.length - recentMoves.length + index + 1;
+      const playerColor = move.player === 'white' ? 'W' : 'B';
+      moveItem.innerHTML = `
+        <span class="move-number">${moveNumber}.</span>
+        <span class="move-player">${playerColor}</span>
+        <span class="move-notation">${move.notation || this.getMoveNotation(move.piece, move.from[0], move.from[1], move.to[0], move.to[1], move.captured)}</span>
+        ${move.captured ? '<span class="move-capture">×' + move.captured + '</span>' : ''}
+      `;
+      moveHistoryElement.appendChild(moveItem);
+    });
+
+    // Auto-scroll to bottom
+    moveHistoryElement.scrollTop = moveHistoryElement.scrollHeight;
+  }
+
   updateUI() {
     const currentPlayerElement = document.getElementById("currentPlayer");
     const statusElement = document.getElementById("gameStatus");
@@ -1734,6 +1850,7 @@ class MagicalChessGame {
     this.updateItemsUI();
     this.updateEffectsDisplay();
     this.updateGraveyardDisplay();
+    this.updateMoveHistoryDisplay();
   }
 
   updateGraveyardDisplay() {
@@ -1848,6 +1965,7 @@ class MagicalChessGame {
     this.currentPlayer = "white";
     this.selectedSquare = null;
     this.moveHistory = [];
+    this.lastMove = null;
     this.gameStatus = "active";
     this.enPassantTarget = null;
     this.castlingRights = {
@@ -2054,6 +2172,34 @@ function initializeMagicalChessGame() {
 
     // Enhanced keyboard shortcuts
     document.addEventListener("keydown", (e) => {
+      // Esc key to deselect everything
+      if (e.key === "Escape") {
+        if (game.selectedSquare) {
+          game.selectedSquare = null;
+          game.clearHighlights();
+          game.updateBoardDisplay();
+        }
+        if (game.selectedSpell) {
+          game.selectedSpell = null;
+          game.updateSpellsUI();
+        }
+        if (game.selectedItem) {
+          game.selectedItem = null;
+          game.updateItemsUI();
+        }
+        if (game.waitingForTarget) {
+          game.waitingForTarget = false;
+          game.pendingSpellAction = null;
+          game.updateBoardDisplay();
+        }
+        if (game.waitingForGraveyardSelection) {
+          game.waitingForGraveyardSelection = false;
+          game.updateGraveyardDisplay();
+        }
+        game.updateSpellItemButtons();
+        return;
+      }
+      
       if (e.key === "s" && game.selectedSpell) {
         const result = game.useSpell(game.selectedSpell);
         game.displaySpellResult(result);
@@ -2063,6 +2209,13 @@ function initializeMagicalChessGame() {
         const result = game.useItem(game.selectedItem);
         game.displayItemResult(result);
         game.updateSpellItemButtons();
+      }
+      if (e.key === "r" && !e.ctrlKey && !e.altKey) {
+        // R key to roll dice
+        const rollButton = document.getElementById("rollDiceButton");
+        if (rollButton && !rollButton.disabled) {
+          rollButton.click();
+        }
       }
       if (e.key === "e" && e.ctrlKey) {
         game.endTurn();
