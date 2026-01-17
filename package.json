@@ -5,7 +5,8 @@
   "main": "src/game/index.js",
   "scripts": {
     "start": "node src/game/index.js",
-    "serve": "npx http-server app -p 8080 -o",
+    "serve": "npx http-server . -p 8080 -o",
+    "dev": "npx http-server . -p 8080 -o",
     "test": "jest",
     "lint": "eslint src/**/*.js"
   },
